@@ -1,0 +1,6 @@
+[submodule "bundle/neocomplcache"]
+	path = bundle/neocomplcache
+	url = git://github.com/Shougo/neocomplcache.git
+[submodule "bundle/ft_actionscript"]
+	path = bundle/ft_actionscript
+	url = git://github.com/vim-scripts/actionscript.vim--Leider.git
