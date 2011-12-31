@@ -1,5 +1,12 @@
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p")
+if has("windows")
+  let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
+  source $VIMRUNTIME/vimrc_example.vim
+  source $VIMRUNTIME/mswin.vim
+  behave mswin
+  set nobackup
+endif
 let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
 " add it into runtimepath
 let &runtimepath = $brookvim_root.",".&runtimepath
@@ -13,12 +20,6 @@ set hlsearch    "hilight searches by default
 
 if has("gui_mac") || has("gui_macvim")
   set guifont=Menlo:h14
-endif
-if has("windows")
-  source $VIMRUNTIME/vimrc_example.vim
-  source $VIMRUNTIME/mswin.vim
-  behave mswin
-  set nobackup
 endif
 
 filetype off
