@@ -4,3 +4,9 @@
 [submodule "bundle/ft_actionscript"]
 	path = bundle/ft_actionscript
 	url = git://github.com/vim-scripts/actionscript.vim--Leider.git
+[submodule "bundle/nerdcommenter"]
+	path = bundle/nerdcommenter
+	url = git://github.com/scrooloose/nerdcommenter.git
+[submodule "bundle/command-t"]
+	path = bundle/command-t
+	url = git://github.com/wincent/Command-T.git
