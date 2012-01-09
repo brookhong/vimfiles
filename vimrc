@@ -1,3 +1,4 @@
+" vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p")
 if has("windows")
@@ -5,7 +6,6 @@ if has("windows")
   source $VIMRUNTIME/vimrc_example.vim
   source $VIMRUNTIME/mswin.vim
   behave mswin
-  set nobackup
 endif
 let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
 " add it into runtimepath
@@ -14,6 +14,22 @@ let &runtimepath = $brookvim_root.",".&runtimepath
 set nocompatible
 syntax on
 set paste
+
+set nobackup
+function! ShiftTab()
+  if &expandtab == 0
+    set tabstop=4
+    set shiftwidth=4
+    set softtabstop=4
+    set expandtab
+  else
+    set tabstop=8
+    set shiftwidth=8
+    set softtabstop=0
+    set noexpandtab
+  endif
+endfunction
+map <S-TAB> :call ShiftTab()<cr>
 
 set incsearch   "find the next match as we type the search
 set hlsearch    "hilight searches by default
