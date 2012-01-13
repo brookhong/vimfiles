@@ -24,6 +24,14 @@ Then launch vim and run --
 
     :call pathogen#helptags()
 
+## Updating to the latest version
+
+    cd <your_vimrc_folder>
+    git pull
+    git submodule sync 
+    git submodule update --init --recursive
+
+
 ## Notes:
 
  * Can not submodule pathogen, refer to http://stackoverflow.com/questions/5232829/adding-git-submodule-into-the-root-of-the-repository, since I don't like the symlink idea.

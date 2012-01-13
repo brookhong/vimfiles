@@ -31,6 +31,16 @@ function! ShiftTab()
 endfunction
 map <S-TAB> :call ShiftTab()<cr>
 
+" Read Ex-Command output to current buffer, for example, to read output of ls, just type -- 
+" :Rex ls
+function! ReadExCmd(exCmd)
+  redi @+
+  silent exec a:exCmd
+  redi END
+  exec "normal \"+p"
+endfunction 
+com! -nargs=* Rex call ReadExCmd(<f-args>)
+
 set incsearch   "find the next match as we type the search
 set hlsearch    "hilight searches by default
 
