@@ -49,6 +49,7 @@ if has("gui_mac") || has("gui_macvim")
 endif
 
 filetype off
+let g:pathogen_disabled = ["command-t"]
 call pathogen#infect() 
 
 filetype plugin on
@@ -60,12 +61,13 @@ set cursorline
 
 " extended key map
 let mapleader=","
-nmap <silent> <leader>ev :e $brookvim_root/vimrc<CR>
-nmap <silent> <leader>sv :so $brookvim_root/vimrc<CR>
+nmap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
+nmap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nmap <silent> <leader>qa :qall!<cr>
 nmap <silent> <leader>d :%s/^\(.*\)\n\1$/\1/g<CR>
 nmap <silent> <leader>j :%s/\n//g<CR>
 nmap <silent> <leader>c :g/^\s*$/d<CR>
+map <silent> <leader>e :NERDTreeToggle<CR>
 
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
