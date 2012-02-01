@@ -13,7 +13,7 @@ let &runtimepath = $brookvim_root.",".&runtimepath
 
 set nocompatible
 syntax on
-set paste
+" set paste " cause abbreviate not working under linux/terminal
 
 set nobackup
 function! ShiftTab()
@@ -48,8 +48,14 @@ if has("gui_mac") || has("gui_macvim")
   set guifont=Menlo:h14
 endif
 
+if has('gui')
+  let g:NERDTreeDirArrows = 1
+else
+  let g:NERDTreeDirArrows = 0
+endif
+
 filetype off
-let g:pathogen_disabled = ["command-t"]
+" let g:pathogen_disabled = ["command-t"]
 call pathogen#infect() 
 
 filetype plugin on
@@ -60,7 +66,7 @@ colorscheme desert
 set cursorline
 
 " extended key map
-let mapleader=","
+let mapleader = ","
 nmap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nmap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nmap <silent> <leader>qa :qall!<cr>
@@ -72,3 +78,11 @@ map <silent> <leader>e :NERDTreeToggle<CR>
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
 imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
+
+
+cabbrev lvg
+      \ lvim /\<lt><C-R><C-W>\>/gj
+      \ **/*<C-R>=(expand("%:e")=="" ? "" : ".".expand("%:e"))<CR>
+      \ <Bar> lw
+      \ <C-Left><C-Left><C-Left>
+nmap ,g :lvg<CR>
