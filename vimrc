@@ -46,9 +46,6 @@ set hlsearch    "hilight searches by default
 
 if has("gui_mac") || has("gui_macvim")
   set guifont=Menlo:h14
-endif
-
-if has('gui')
   let g:NERDTreeDirArrows = 1
 else
   let g:NERDTreeDirArrows = 0
@@ -75,10 +72,12 @@ nmap <silent> <leader>j :%s/\n//g<CR>
 nmap <silent> <leader>c :g/^\s*$/d<CR>
 map <silent> <leader>e :NERDTreeToggle<CR>
 
+map <silent> <Space>q :q<CR>
+map <silent> <Space>t :tabe<CR>
+
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
 imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
-
 
 cabbrev lvg
       \ lvim /\<lt><C-R><C-W>\>/gj
