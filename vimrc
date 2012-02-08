@@ -1,7 +1,7 @@
 " vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p")
-if has("windows")
+if has("win32")
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
   source $VIMRUNTIME/vimrc_example.vim
   source $VIMRUNTIME/mswin.vim
@@ -52,7 +52,9 @@ else
 endif
 
 filetype off
-" let g:pathogen_disabled = ["command-t"]
+if has('ruby') == 0
+  let g:pathogen_disabled = ["command-t"]
+endif
 call pathogen#infect() 
 
 filetype plugin on
@@ -71,6 +73,8 @@ nmap <silent> <leader>d :%s/^\(.*\)\n\1$/\1/g<CR>
 nmap <silent> <leader>j :%s/\n//g<CR>
 nmap <silent> <leader>c :g/^\s*$/d<CR>
 map <silent> <leader>e :NERDTreeToggle<CR>
+map <silent> <leader>f :tabf <cfile><CR>
+map <silent> <leader>s :sf <cfile><CR>
 
 map <silent> <Space>q :q<CR>
 map <silent> <Space>t :tabe<CR>
