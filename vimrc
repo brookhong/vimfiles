@@ -1,21 +1,40 @@
 " vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+
+set nocompatible
+set number
+set nobackup		" do not keep a backup file, use versions instead
+set history=50		" keep 50 lines of command line history
+set ruler		" show the cursor position all the time
+set showcmd		" display incomplete commands
+set incsearch		" do incremental searching
+set hlsearch    "hilight searches by default
+set cursorline
+syntax on
+colorscheme desert
+
+" set paste " cause abbreviate not working under linux/terminal
+
+" When editing a file, always jump to the last known cursor position.
+" Don't do it when the position is invalid or when inside an event handler
+" (happens when dropping a file on gvim).
+" Also don't do it when the mark is in the first line, that is the default
+" position when opening a file.
+autocmd BufReadPost *
+      \ if line("'\"") > 1 && line("'\"") <= line("$") |
+      \   exe "normal! g`\"" |
+      \ endif
+
+
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p")
 if has("win32")
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
-  source $VIMRUNTIME/vimrc_example.vim
   source $VIMRUNTIME/mswin.vim
-  behave mswin
 endif
 let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
 " add it into runtimepath
 let &runtimepath = $brookvim_root.",".&runtimepath
 
-set nocompatible
-syntax on
-" set paste " cause abbreviate not working under linux/terminal
-
-set nobackup
 function! ShiftTab()
   if &expandtab == 0
     set tabstop=4
@@ -41,9 +60,6 @@ function! ReadExCmd(exCmd)
 endfunction 
 com! -nargs=* Rex call ReadExCmd(<f-args>)
 
-set incsearch   "find the next match as we type the search
-set hlsearch    "hilight searches by default
-
 if has("gui_mac") || has("gui_macvim")
   set guifont=Menlo:h14
   let g:NERDTreeDirArrows = 1
@@ -56,13 +72,7 @@ if has('ruby') == 0
   let g:pathogen_disabled = ["command-t"]
 endif
 call pathogen#infect() 
-
-filetype plugin on
-filetype indent on
-
-colorscheme desert
-"colorscheme desert256
-set cursorline
+filetype plugin indent on
 
 " extended key map
 let mapleader = ","
@@ -79,13 +89,15 @@ map <silent> <leader>s :sf <cfile><CR>
 map <silent> <Space>q :q<CR>
 map <silent> <Space>t :tabe<CR>
 
-" neocomplcache setup
-let g:neocomplcache_enable_at_startup = 1
-imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
-
 cabbrev lvg
       \ lvim /\<lt><C-R><C-W>\>/gj
       \ **/*<C-R>=(expand("%:e")=="" ? "" : ".".expand("%:e"))<CR>
       \ <Bar> lw
       \ <C-Left><C-Left><C-Left>
-nmap ,g :lvg<CR>
+nmap <leader>g :lvg<CR>
+nmap <leader>lo :lop<CR>
+nmap <leader>lc :lcl<CR>
+
+" neocomplcache setup
+let g:neocomplcache_enable_at_startup = 1
+imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
