@@ -9,10 +9,16 @@ set showcmd		" display incomplete commands
 set incsearch		" do incremental searching
 set hlsearch    "hilight searches by default
 set cursorline
+set guioptions-=T "disable toolbar
+" set paste " cause abbreviate not working under linux/terminal
+
+" automatic change directory to current buffer
+if exists('+autochdir')
+  set autochdir
+endif
+
 syntax on
 colorscheme desert
-
-" set paste " cause abbreviate not working under linux/terminal
 
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
@@ -58,7 +64,7 @@ function! ReadExCmd(exCmd)
   redi END
   exec "normal \"+p"
 endfunction 
-com! -nargs=* Rex call ReadExCmd(<f-args>)
+com! -nargs=* Rex call ReadExCmd(<q-args>)
 
 if has("gui_mac") || has("gui_macvim")
   set guifont=Menlo:h14
@@ -79,12 +85,18 @@ let mapleader = ","
 nmap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nmap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nmap <silent> <leader>qa :qall!<cr>
-nmap <silent> <leader>d :%s/^\(.*\)\n\1$/\1/g<CR>
-nmap <silent> <leader>j :%s/\n//g<CR>
-nmap <silent> <leader>c :g/^\s*$/d<CR>
-map <silent> <leader>e :NERDTreeToggle<CR>
-map <silent> <leader>f :tabf <cfile><CR>
-map <silent> <leader>s :sf <cfile><CR>
+nmap <silent> <leader>qd :%s/^\(.*\)\n\1$/\1/g<CR>
+nmap <silent> <leader>qj :%s/\n//g<CR>
+nmap <silent> <leader>qc :g/^\s*$/d<CR>
+nmap <silent> <leader>nh /the quick brown fox jumps over the lazy dog/<CR>
+nmap <silent> <leader>e :NERDTreeToggle<CR>
+nmap <silent> <leader>f :tabf <cfile><CR>
+nmap <silent> <leader>sh :sp <cfile><CR>
+nmap <silent> <leader>sv :vs <cfile><CR>
+autocmd FileType php        noremap <silent> <leader>r :!php %<CR>
+autocmd FileType python     noremap <silent> <leader>r :!python %<CR>
+autocmd FileType ruby       noremap <silent> <leader>r :!ruby %<CR>
+autocmd FileType perl       noremap <silent> <leader>r :!perl %<CR>
 
 map <silent> <Space>q :q<CR>
 map <silent> <Space>t :tabe<CR>
