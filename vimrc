@@ -2,11 +2,11 @@
 
 set nocompatible
 set number
-set nobackup		" do not keep a backup file, use versions instead
-set history=50		" keep 50 lines of command line history
-set ruler		" show the cursor position all the time
-set showcmd		" display incomplete commands
-set incsearch		" do incremental searching
+set nobackup " do not keep a backup file, use versions instead
+set history=50 " keep 50 lines of command line history
+set ruler " show the cursor position all the time
+set showcmd " display incomplete commands
+set incsearch " do incremental searching
 set hlsearch    "hilight searches by default
 set cursorline
 set guioptions-=T "disable toolbar
@@ -106,9 +106,45 @@ cabbrev lvg
       \ **/*<C-R>=(expand("%:e")=="" ? "" : ".".expand("%:e"))<CR>
       \ <Bar> lw
       \ <C-Left><C-Left><C-Left>
-nmap <leader>g :lvg<CR>
-nmap <leader>lo :lop<CR>
-nmap <leader>lc :lcl<CR>
+function! SetFileFamily()
+  let l:ext = expand("%:e")
+  if l:ext == ""
+    let w:family_type = "**/*"
+  elseif l:ext == "as"
+    let w:family_type = "**/*.as **/*.mxml"
+  elseif l:ext == "h"
+    let w:family_type = "**/*.h **/*.hpp **/*.c **/*.cpp"
+  elseif l:ext == "cpp"
+    let w:family_type = "**/*.h **/*.hpp **/*.c **/*.cpp"
+  else
+    let w:family_type = "**/*.".l:ext
+  endif
+endfunction
+function! LVimGrep()
+  let l:word = expand("<cword>")
+  if strlen(l:word) > 0
+    call SetFileFamily()
+    let w:location_list=1
+    execute 'lvim /'.expand("<cword>").'/gj '.w:family_type.' | lw'
+  endif
+endfunction
+function! ToggleLocationList()
+  if &buftype == "quickfix"
+    silent exec "normal \<C-W>k"
+    call ToggleLocationList()
+  elseif exists('w:location_list') == 0
+    echo "Type ".g:mapleader."g to grep at first."
+  elseif w:location_list == 1
+    lclose
+    let w:location_list = 0
+  else
+    let w:location_list = 1
+    lopen
+  endif
+endfunction
+
+nmap <leader>g :call LVimGrep()<CR>
+nmap <leader>l :call ToggleLocationList()<CR>
 
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
