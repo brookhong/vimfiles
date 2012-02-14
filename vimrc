@@ -13,9 +13,9 @@ set guioptions-=T "disable toolbar
 " set paste " cause abbreviate not working under linux/terminal
 
 " automatic change directory to current buffer
-if exists('+autochdir')
-  set autochdir
-endif
+"if exists('+autochdir')
+  "set autochdir
+"endif
 
 syntax on
 colorscheme desert
@@ -90,6 +90,7 @@ nmap <silent> <leader>qj :%s/\n//g<CR>
 nmap <silent> <leader>qc :g/^\s*$/d<CR>
 nmap <silent> <leader>nh /the quick brown fox jumps over the lazy dog/<CR>
 nmap <silent> <leader>e :NERDTreeToggle<CR>
+nmap <silent> <leader>m :MRU<CR>
 nmap <silent> <leader>f :tabf <cfile><CR>
 nmap <silent> <leader>sh :sp <cfile><CR>
 nmap <silent> <leader>sv :vs <cfile><CR>
@@ -112,6 +113,8 @@ function! SetFileFamily()
     let w:family_type = "**/*"
   elseif l:ext == "as"
     let w:family_type = "**/*.as **/*.mxml"
+  elseif l:ext == "mxml"
+    let w:family_type = "**/*.as **/*.mxml"
   elseif l:ext == "h"
     let w:family_type = "**/*.h **/*.hpp **/*.c **/*.cpp"
   elseif l:ext == "cpp"
@@ -120,19 +123,28 @@ function! SetFileFamily()
     let w:family_type = "**/*.".l:ext
   endif
 endfunction
+autocmd BufNewFile,BufRead * call SetFileFamily()
 function! LVimGrep()
   let l:word = expand("<cword>")
   if strlen(l:word) > 0
-    call SetFileFamily()
     let w:location_list=1
     execute 'lvim /'.expand("<cword>").'/gj '.w:family_type.' | lw'
   endif
 endfunction
 function! ToggleLocationList()
   if &buftype == "quickfix"
-    silent exec "normal \<C-W>k"
-    call ToggleLocationList()
-  elseif exists('w:location_list') == 0
+    if winnr() > 1
+      silent exec "normal \<C-W>k"
+      if &buftype == "quickfix"
+        silent exec "normal \<C-W>j"
+      endif
+    endif
+    if &buftype == "quickfix"
+      lfirst
+      let w:location_list = 1
+    endif
+  endif
+  if exists('w:location_list') == 0
     echo "Type ".g:mapleader."g to grep at first."
   elseif w:location_list == 1
     lclose
