@@ -16,3 +16,6 @@
 [submodule "bundle/mru"]
 	path = bundle/mru
 	url = git://github.com/vim-scripts/mru.vim.git
+[submodule "bundle/ctrp"]
+	path = bundle/ctrp
+	url = git://github.com/kien/ctrlp.vim.git

@@ -161,3 +161,12 @@ nmap <leader>l :call ToggleLocationList()<CR>
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
 imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
+
+" ctrlp setup
+let g:ctrlp_clear_cache_on_exit = 0
+let g:ctrlp_working_path_mode = 1
+let g:ctrlp_custom_ignore = {
+      \ 'dir':  '\.git$\|\.hg$\|\.svn$',
+      \ 'file': '\.exe$\|\.so$\|\.dll$|\.jpg$|\.png$|\.gif$|\.zip$|\.rar$|\.iso$',
+      \ }
+
