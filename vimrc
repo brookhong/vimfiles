@@ -94,10 +94,22 @@ nmap <silent> <leader>m :MRU<CR>
 nmap <silent> <leader>f :tabf <cfile><CR>
 nmap <silent> <leader>sh :sp <cfile><CR>
 nmap <silent> <leader>sv :vs <cfile><CR>
+
+function! LaunchWebBrowser(url)
+  if has("win32")
+    execute ":silent ! start ".a:url
+  elseif has("mac")
+    execute ":silent ! open /Applications/Google\\ Chrome.app ".a:url
+  else
+    echo a:url
+  endif
+endfunction
 autocmd FileType php        noremap <silent> <leader>r :!php %<CR>
 autocmd FileType python     noremap <silent> <leader>r :!python %<CR>
 autocmd FileType ruby       noremap <silent> <leader>r :!ruby %<CR>
 autocmd FileType perl       noremap <silent> <leader>r :!perl %<CR>
+autocmd FileType php        noremap K :call LaunchWebBrowser("http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref")<CR>
+autocmd FileType vim        setlocal keywordprg=:help
 
 map <silent> <Space>q :q<CR>
 map <silent> <Space>t :tabe<CR>
@@ -111,14 +123,10 @@ function! SetFileFamily()
   let l:ext = expand("%:e")
   if l:ext == ""
     let w:family_type = "**/*"
-  elseif l:ext == "as"
+  elseif (l:ext == "as" || l:ext == "mxml")
     let w:family_type = "**/*.as **/*.mxml"
-  elseif l:ext == "mxml"
-    let w:family_type = "**/*.as **/*.mxml"
-  elseif l:ext == "h"
-    let w:family_type = "**/*.h **/*.hpp **/*.c **/*.cpp"
-  elseif l:ext == "cpp"
-    let w:family_type = "**/*.h **/*.hpp **/*.c **/*.cpp"
+  elseif (l:ext == "cpp" || l:ext == "cc" || l:ext == "cxx" || l:ext == "c" || l:ext == "m" || l:ext == "hpp" || l:ext == "hh" || l:ext == "h" || l:ext == "hxx")
+    let w:family_type = "**/*.cpp **/*.cc **/*.cxx **/*.c **/*.m **/*.hpp **/*.hh **/*.h **/*.hxx"
   else
     let w:family_type = "**/*.".l:ext
   endif
@@ -164,7 +172,8 @@ imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>
 
 " ctrlp setup
 let g:ctrlp_clear_cache_on_exit = 0
-let g:ctrlp_working_path_mode = 1
+let g:ctrlp_working_path_mode = 0
+let g:ctrlp_max_height = 25
 let g:ctrlp_custom_ignore = {
       \ 'dir':  '\.git$\|\.hg$\|\.svn$',
       \ 'file': '\.exe$\|\.so$\|\.dll$|\.jpg$|\.png$|\.gif$|\.zip$|\.rar$|\.iso$',
