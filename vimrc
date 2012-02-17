@@ -114,11 +114,26 @@ autocmd FileType vim        setlocal keywordprg=:help
 map <silent> <Space>q :q<CR>
 map <silent> <Space>t :tabe<CR>
 
-cabbrev lvg
-      \ lvim /\<lt><C-R><C-W>\>/gj
-      \ **/*<C-R>=(expand("%:e")=="" ? "" : ".".expand("%:e"))<CR>
-      \ <Bar> lw
-      \ <C-Left><C-Left><C-Left>
+set cscopequickfix=s-,c-,d-,i-,t-,e- 
+function! GetCscopeDB()
+  redi @+
+  silent execute ":cs show"
+  redi END
+  return getreg('+')
+endfunction
+function! ChangeDir(dir)
+  cs kill -1
+  execute ":cd".a:dir
+  if filereadable("cscope.out")
+    cs add cscope.out 
+  endif
+  let l:cs_show = GetCscopeDB()
+  let w:no_cscope_db = stridx(l:cs_show,"no cscope connections")+1
+endfunction
+com! -nargs=? -complete=dir -bar C :call ChangeDir(<q-args>)
+
+let w:no_cscope_db = 1
+let w:family_type = "**/*"
 function! SetFileFamily()
   let l:ext = expand("%:e")
   if l:ext == ""
@@ -132,11 +147,15 @@ function! SetFileFamily()
   endif
 endfunction
 autocmd BufNewFile,BufRead * call SetFileFamily()
-function! LVimGrep()
-  let l:word = expand("<cword>")
-  if strlen(l:word) > 0
+function! LVimGrep(word)
+  if strlen(a:word) > 0
     let w:location_list=1
-    execute 'lvim /'.expand("<cword>").'/gj '.w:family_type.' | lw'
+    if w:no_cscope_db == 1
+      execute 'lvim /\<'.a:word.'\>/gj '.w:family_type.' | lw'
+    else
+      execute 'lcs find t '.a:word
+      lw
+    endif
   endif
 endfunction
 function! ToggleLocationList()
@@ -163,7 +182,8 @@ function! ToggleLocationList()
   endif
 endfunction
 
-nmap <leader>g :call LVimGrep()<CR>
+com! -nargs=? -bar L :call LVimGrep(<q-args>)
+nmap <leader>g :call LVimGrep("<C-R><C-W>")<CR>
 nmap <leader>l :call ToggleLocationList()<CR>
 
 " neocomplcache setup
@@ -178,4 +198,3 @@ let g:ctrlp_custom_ignore = {
       \ 'dir':  '\.git$\|\.hg$\|\.svn$',
       \ 'file': '\.exe$\|\.so$\|\.dll$|\.jpg$|\.png$|\.gif$|\.zip$|\.rar$|\.iso$',
       \ }
-
