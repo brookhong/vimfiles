@@ -59,12 +59,12 @@ map <S-TAB> :call ShiftTab()<cr>
 " Read Ex-Command output to current buffer, for example, to read output of ls, just type -- 
 " :Rex ls
 function! ReadExCmd(exCmd)
-  redi @+
+  redi @x
   silent exec a:exCmd
   redi END
-  exec "normal \"+p"
+  exec "normal \"xp"
 endfunction 
-com! -nargs=* Rex call ReadExCmd(<q-args>)
+com! -nargs=* -complete=command -bar Rx call ReadExCmd(<q-args>)
 
 if has("gui_mac") || has("gui_macvim")
   set guifont=Menlo:h14
@@ -116,23 +116,23 @@ map <silent> <Space>t :tabe<CR>
 
 set cscopequickfix=s-,c-,d-,i-,t-,e- 
 function! GetCscopeDB()
-  redi @+
+  redi @x
   silent execute ":cs show"
   redi END
-  return getreg('+')
+  return getreg('x')
 endfunction
 function! ChangeDir(dir)
   cs kill -1
-  execute ":cd".a:dir
+  execute ":cd ".a:dir
   if filereadable("cscope.out")
     cs add cscope.out 
   endif
   let l:cs_show = GetCscopeDB()
-  let w:no_cscope_db = stridx(l:cs_show,"no cscope connections")+1
+  let g:no_cscope_db = stridx(l:cs_show,"no cscope connections")+1
 endfunction
 com! -nargs=? -complete=dir -bar C :call ChangeDir(<q-args>)
 
-let w:no_cscope_db = 1
+let g:no_cscope_db = 1
 let w:family_type = "**/*"
 function! SetFileFamily()
   let l:ext = expand("%:e")
@@ -150,7 +150,7 @@ autocmd BufNewFile,BufRead * call SetFileFamily()
 function! LVimGrep(word)
   if strlen(a:word) > 0
     let w:location_list=1
-    if w:no_cscope_db == 1
+    if g:no_cscope_db == 1
       execute 'lvim /\<'.a:word.'\>/gj '.w:family_type.' | lw'
     else
       execute 'lcs find t '.a:word
