@@ -56,14 +56,14 @@ function! ShiftTab()
 endfunction
 map <S-TAB> :call ShiftTab()<cr>
 
-" Read Ex-Command output to current buffer, for example, to read output of ls, just type -- 
+" Read Ex-Command output to current buffer, for example, to read output of ls, just type --
 " :Rex ls
 function! ReadExCmd(exCmd)
   redi @x
   silent exec a:exCmd
   redi END
   exec "normal \"xp"
-endfunction 
+endfunction
 com! -nargs=* -complete=command -bar Rx call ReadExCmd(<q-args>)
 
 if has("gui_mac") || has("gui_macvim")
@@ -77,7 +77,7 @@ filetype off
 if has('ruby') == 0
   let g:pathogen_disabled = ["command-t"]
 endif
-call pathogen#infect() 
+call pathogen#infect()
 filetype plugin indent on
 
 " extended key map
@@ -110,11 +110,12 @@ autocmd FileType ruby       noremap <silent> <leader>r :!ruby %<CR>
 autocmd FileType perl       noremap <silent> <leader>r :!perl %<CR>
 autocmd FileType php        noremap K :call LaunchWebBrowser("http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref")<CR>
 autocmd FileType vim        setlocal keywordprg=:help
+noremap T :call LaunchWebBrowser("http://dict.baidu.com/s?wd=".expand("<cword>"))<CR>
 
 map <silent> <Space>q :q<CR>
 map <silent> <Space>t :tabe<CR>
 
-set cscopequickfix=s-,c-,d-,i-,t-,e- 
+set cscopequickfix=s-,c-,d-,i-,t-,e-
 function! GetCscopeDB()
   redi @x
   silent execute ":cs show"
@@ -125,7 +126,7 @@ function! ChangeDir(dir)
   cs kill -1
   execute ":cd ".a:dir
   if filereadable("cscope.out")
-    cs add cscope.out 
+    cs add cscope.out
   endif
   let l:cs_show = GetCscopeDB()
   let g:no_cscope_db = stridx(l:cs_show,"no cscope connections")+1
@@ -146,7 +147,7 @@ function! SetFileFamily()
     let w:family_type = "**/*.".l:ext
   endif
 endfunction
-autocmd BufNewFile,BufRead * call SetFileFamily()
+autocmd BufNewFile,BufCreate,BufRead * call SetFileFamily()
 function! LVimGrep(word)
   if strlen(a:word) > 0
     let w:location_list=1
@@ -172,7 +173,7 @@ function! ToggleLocationList()
     endif
   endif
   if exists('w:location_list') == 0
-    echo "Type ".g:mapleader."g to grep at first."
+    echohl WarningMsg | echo "Type ".g:mapleader."g to grep at first." | echohl None
   elseif w:location_list == 1
     lclose
     let w:location_list = 0
@@ -183,9 +184,11 @@ function! ToggleLocationList()
 endfunction
 
 com! -nargs=? -bar L :call LVimGrep(<q-args>)
+nmap L :L 
 nmap <leader>g :call LVimGrep("<C-R><C-W>")<CR>
 nmap <leader>l :call ToggleLocationList()<CR>
 
+com! -nargs=0 -bar Dos2Unix :%s/\r//g
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
 imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
