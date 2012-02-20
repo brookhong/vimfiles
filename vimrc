@@ -1,7 +1,7 @@
 " vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
 set nocompatible
-set number
+"set number
 set nobackup " do not keep a backup file, use versions instead
 set history=50 " keep 50 lines of command line history
 set ruler " show the cursor position all the time
@@ -10,12 +10,17 @@ set incsearch " do incremental searching
 set hlsearch    "hilight searches by default
 set cursorline
 set guioptions-=T "disable toolbar
+set guioptions-=m "disable menu 
 " set paste " cause abbreviate not working under linux/terminal
 
 " automatic change directory to current buffer
 "if exists('+autochdir')
   "set autochdir
 "endif
+set wildmenu
+set laststatus=2
+set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{(&expandtab)?'ExpandTab':'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
+
 
 syntax on
 colorscheme desert
@@ -29,7 +34,6 @@ autocmd BufReadPost *
       \ if line("'\"") > 1 && line("'\"") <= line("$") |
       \   exe "normal! g`\"" |
       \ endif
-
 
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p")
@@ -53,6 +57,7 @@ function! ShiftTab()
     set softtabstop=0
     set noexpandtab
   endif
+  let @/="\t"
 endfunction
 map <S-TAB> :call ShiftTab()<cr>
 
@@ -74,9 +79,6 @@ else
 endif
 
 filetype off
-if has('ruby') == 0
-  let g:pathogen_disabled = ["command-t"]
-endif
 call pathogen#infect()
 filetype plugin indent on
 
@@ -85,12 +87,8 @@ let mapleader = ","
 nmap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nmap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nmap <silent> <leader>qa :qall!<cr>
-nmap <silent> <leader>qd :%s/^\(.*\)\n\1$/\1/g<CR>
-nmap <silent> <leader>qj :%s/\n//g<CR>
-nmap <silent> <leader>qc :g/^\s*$/d<CR>
-nmap <silent> <leader>nh /the quick brown fox jumps over the lazy dog/<CR>
+nmap <silent> <leader>nh :let @/=""<CR>
 nmap <silent> <leader>e :NERDTreeToggle<CR>
-nmap <silent> <leader>m :MRU<CR>
 nmap <silent> <leader>f :tabf <cfile><CR>
 nmap <silent> <leader>sh :sp <cfile><CR>
 nmap <silent> <leader>sv :vs <cfile><CR>
@@ -110,7 +108,7 @@ autocmd FileType ruby       noremap <silent> <leader>r :!ruby %<CR>
 autocmd FileType perl       noremap <silent> <leader>r :!perl %<CR>
 autocmd FileType php        noremap K :call LaunchWebBrowser("http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref")<CR>
 autocmd FileType vim        setlocal keywordprg=:help
-noremap T :call LaunchWebBrowser("http://dict.baidu.com/s?wd=".expand("<cword>"))<CR>
+noremap <leader>wt :call LaunchWebBrowser("http://dict.baidu.com/s?wd=".expand("<cword>"))<CR>
 
 map <silent> <Space>q :q<CR>
 map <silent> <Space>t :tabe<CR>
@@ -184,16 +182,20 @@ function! ToggleLocationList()
 endfunction
 
 com! -nargs=? -bar L :call LVimGrep(<q-args>)
-nmap L :L 
 nmap <leader>g :call LVimGrep("<C-R><C-W>")<CR>
 nmap <leader>l :call ToggleLocationList()<CR>
 
 com! -nargs=0 -bar Dos2Unix :%s/\r//g
+com! -nargs=0 -bar RmAllNL :%s/\n//g
+com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
+com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
+
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
 imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
 
 " ctrlp setup
+nmap <silent> <C-M> :CtrlPMRU<CR>
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_working_path_mode = 0
 let g:ctrlp_max_height = 25
