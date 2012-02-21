@@ -19,7 +19,7 @@ set guioptions-=m "disable menu
 "endif
 set wildmenu
 set laststatus=2
-set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{(&expandtab)?'ExpandTab':'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
+set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}%{(g:cscope_db_root==getcwd()&&g:has_cscope_db==1)?'*':''}\ %=%-10{(&expandtab)?'ExpandTab':'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
 
 
 syntax on
@@ -114,24 +114,20 @@ map <silent> <Space>q :q<CR>
 map <silent> <Space>t :tabe<CR>
 
 set cscopequickfix=s-,c-,d-,i-,t-,e-
-function! GetCscopeDB()
-  redi @x
-  silent execute ":cs show"
-  redi END
-  return getreg('x')
-endfunction
-function! ChangeDir(dir)
-  cs kill -1
-  execute ":cd ".a:dir
-  if filereadable("cscope.out")
-    cs add cscope.out
+let g:has_cscope_db = 0
+let g:cscope_db_root = ""
+function! CheckCscopeDB()
+  let l:cwd = getcwd()
+  if g:cscope_db_root != l:cwd
+    let g:cscope_db_root = l:cwd
+    let g:has_cscope_db = 0
+    cs kill -1
+    if filereadable("cscope.out")
+      cs add cscope.out
+      let g:has_cscope_db = 1
+    endif
   endif
-  let l:cs_show = GetCscopeDB()
-  let g:no_cscope_db = stridx(l:cs_show,"no cscope connections")+1
 endfunction
-com! -nargs=? -complete=dir -bar C :call ChangeDir(<q-args>)
-
-let g:no_cscope_db = 1
 let w:family_type = "**/*"
 function! SetFileFamily()
   let l:ext = expand("%:e")
@@ -145,15 +141,16 @@ function! SetFileFamily()
     let w:family_type = "**/*.".l:ext
   endif
 endfunction
-autocmd BufNewFile,BufCreate,BufRead * call SetFileFamily()
+autocmd BufWinEnter * call SetFileFamily()
 function! LVimGrep(word)
   if strlen(a:word) > 0
     let w:location_list=1
-    if g:no_cscope_db == 1
-      execute 'lvim /\<'.a:word.'\>/gj '.w:family_type.' | lw'
-    else
+    call CheckCscopeDB()
+    if g:has_cscope_db == 1
       execute 'lcs find t '.a:word
       lw
+    else
+      execute 'lvim /\<'.a:word.'\>/gj '.w:family_type.' | lw'
     endif
   endif
 endfunction
