@@ -92,7 +92,19 @@ nmap <silent> <leader>qx :q!<CR>
 nmap <silent> <leader>nh :let @/=""<CR>
 nmap <silent> <leader>sh :sp <cfile><CR>
 nmap <silent> <leader>sv :vs <cfile><CR>
-nmap <silent> <leader>e :NERDTreeToggle<CR>
+let t:NERDTreeRoot = ""
+function! s:NERDTreeOpen(dir)
+  execute ':NERDTree '.a:dir
+  let t:NERDTreeRoot = a:dir
+endfunction
+function! ToggleNERDTree(dir)
+  if exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1 && t:NERDTreeRoot == a:dir
+    NERDTreeClose
+  else
+    call s:NERDTreeOpen(a:dir)
+  endif
+endfunction
+nmap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
 nmap <silent> <leader>f :tabf <cfile><CR>
 
 function! LaunchWebBrowser(url)
