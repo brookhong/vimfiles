@@ -94,7 +94,11 @@ nmap <silent> <leader>sh :sp <cfile><CR>
 nmap <silent> <leader>sv :vs <cfile><CR>
 let t:NERDTreeRoot = ""
 function! s:NERDTreeOpen(dir)
-  execute ':NERDTree '.a:dir
+  if &bt == "" && expand("%") != ""
+    NERDTreeFind
+  else
+    execute ':NERDTree '.a:dir
+  endif
   let t:NERDTreeRoot = a:dir
 endfunction
 function! ToggleNERDTree(dir)
