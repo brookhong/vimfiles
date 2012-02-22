@@ -87,11 +87,13 @@ let mapleader = ","
 nmap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nmap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nmap <silent> <leader>qa :qall!<cr>
+nmap <silent> <leader>qf :CtrlPMRU<CR>
+nmap <silent> <leader>qx :q!<CR>
 nmap <silent> <leader>nh :let @/=""<CR>
-nmap <silent> <leader>e :NERDTreeToggle<CR>
-nmap <silent> <leader>f :tabf <cfile><CR>
 nmap <silent> <leader>sh :sp <cfile><CR>
 nmap <silent> <leader>sv :vs <cfile><CR>
+nmap <silent> <leader>e :NERDTreeToggle<CR>
+nmap <silent> <leader>f :tabf <cfile><CR>
 
 function! LaunchWebBrowser(url)
   if has("win32")
@@ -182,6 +184,19 @@ com! -nargs=? -bar L :call LVimGrep(<q-args>)
 nmap <leader>g :call LVimGrep("<C-R><C-W>")<CR>
 nmap <leader>l :call ToggleLocationList()<CR>
 
+function! LHelpGrep(word)
+  if strlen(a:word) > 0
+    execute 'lhelpgrep '.a:word
+    let w:location_list = 1
+    lopen
+  endif
+endfunction
+com! -nargs=1 -bar H :call LHelpGrep(<q-args>)
+function! HtmlImg()
+  %s# #\ #g
+  %s#^.*\(jpg\|png\|gif\)$#<img src="file://&">#
+endfunction
+com! -nargs=0 -bar HtmlImg :call HtmlImg()
 com! -nargs=0 -bar Dos2Unix :%s/\r//g
 com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
@@ -192,7 +207,6 @@ let g:neocomplcache_enable_at_startup = 1
 imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
 
 " ctrlp setup
-nmap <silent> <C-M> :CtrlPMRU<CR>
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_working_path_mode = 0
 let g:ctrlp_max_height = 25
