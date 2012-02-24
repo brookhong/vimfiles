@@ -24,6 +24,7 @@ set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}%{(g:cscope_db_ro
 
 syntax on
 colorscheme desert
+highlight CursorLine  term=standout cterm=bold ctermbg=lightgrey guibg=Grey40
 
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
@@ -59,7 +60,7 @@ function! ShiftTab()
   endif
   let @/="\t"
 endfunction
-map <S-TAB> :call ShiftTab()<cr>
+nmap <S-TAB> :call ShiftTab()<cr>
 
 " Read Ex-Command output to current buffer, for example, to read output of ls, just type --
 " :Rex ls
@@ -128,8 +129,8 @@ autocmd FileType php        noremap K :call LaunchWebBrowser("http://jp.php.net/
 autocmd FileType vim        setlocal keywordprg=:help
 noremap <leader>wt :call LaunchWebBrowser("http://dict.baidu.com/s?wd=".expand("<cword>"))<CR>
 
-map <silent> <Space>q :q<CR>
-map <silent> <Space>t :tabe<CR>
+nmap <silent> <Space>q :q<CR>
+nmap <silent> <Space>t :tabe<CR>
 
 set cscopequickfix=s-,c-,d-,i-,t-,e-
 let g:has_cscope_db = 0
@@ -213,7 +214,7 @@ function! HtmlImg()
   %s#^.*\(jpg\|png\|gif\)$#<img src="file://&">#
 endfunction
 com! -nargs=0 -bar HtmlImg :call HtmlImg()
-com! -nargs=0 -bar Dos2Unix :%s/\r//g
+com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
 com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
