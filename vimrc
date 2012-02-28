@@ -19,7 +19,7 @@ set guioptions-=m "disable menu
 "endif
 set wildmenu
 set laststatus=2
-set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}%{(g:cscope_db_root==getcwd()&&g:has_cscope_db==1)?'*':''}\ %=%-10{(&expandtab)?'ExpandTab':'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
+set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}%{(g:cscope_db_root==getcwd()&&g:has_cscope_db==1)?'*':''}\ %=%-10{(&expandtab)?'ExpandTab-'.&tabstop:'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
 
 
 syntax on
@@ -46,19 +46,23 @@ let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
 " add it into runtimepath
 let &runtimepath = $brookvim_root.",".&runtimepath
 
+function! ExpandTab(tabWidth)
+  set expandtab
+  execute 'set tabstop='.a:tabWidth
+  execute 'set shiftwidth='.a:tabWidth
+  execute 'set softtabstop='.a:tabWidth
+  let @/="\t"
+endfunction
+let g:tabWidth = 4
 function! ShiftTab()
   if &expandtab == 0
-    set tabstop=4
-    set shiftwidth=4
-    set softtabstop=4
-    set expandtab
+    ExpandTab(g:tabWidth)
   else
     set tabstop=8
     set shiftwidth=8
     set softtabstop=0
     set noexpandtab
   endif
-  let @/="\t"
 endfunction
 nmap <S-TAB> :call ShiftTab()<cr>
 
@@ -88,6 +92,7 @@ let mapleader = ","
 nmap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nmap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nmap <silent> <leader>qa :qall!<cr>
+nmap <silent> <leader>qb :CtrlPBuffer<CR>
 nmap <silent> <leader>qf :CtrlPMRU<CR>
 nmap <silent> <leader>qx :q!<CR>
 nmap <silent> <leader>nh :let @/=""<CR>
@@ -127,6 +132,9 @@ autocmd FileType ruby       noremap <silent> <leader>r :!ruby %<CR>
 autocmd FileType perl       noremap <silent> <leader>r :!perl %<CR>
 autocmd FileType php        noremap K :call LaunchWebBrowser("http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref")<CR>
 autocmd FileType vim        setlocal keywordprg=:help
+autocmd FileType markdown   noremap <silent> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
+autocmd FileType markdown,yaml   call ExpandTab(2)
+
 noremap <leader>wt :call LaunchWebBrowser("http://dict.baidu.com/s?wd=".expand("<cword>"))<CR>
 
 nmap <silent> <Space>q :q<CR>
