@@ -1,6 +1,39 @@
 " vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+set nocompatible               " be iMproved
+filetype off                   " required!
 
-set nocompatible
+" find root path of my vimfiles
+let $brookvim_root = expand("<sfile>:p")
+if has("win32")
+  let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
+  source $VIMRUNTIME/mswin.vim
+endif
+let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
+" add it into runtimepath
+" let &runtimepath = $brookvim_root.",".&runtimepath
+
+let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
+call vundle#rc()
+let g:bundle_dir = $brookvim_root."/bundle/"
+
+" let Vundle manage Vundle
+" required! 
+Bundle 'gmarik/vundle'
+
+" My Bundles here:
+"
+" original repos on github
+Bundle 'actionscript.vim--Leider'
+Bundle 'Shougo/neocomplcache'
+Bundle 'Shougo/neocomplcache-snippets-complete'
+Bundle 'scrooloose/nerdcommenter'
+Bundle 'scrooloose/nerdtree'
+Bundle 'kien/ctrlp.vim'
+Bundle 'tpope/vim-fugitive'
+
+filetype plugin indent on     " required! 
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "set number
 set nobackup " do not keep a backup file, use versions instead
 set history=50 " keep 50 lines of command line history
@@ -36,27 +69,17 @@ autocmd BufReadPost *
       \   exe "normal! g`\"" |
       \ endif
 
-" find root path of my vimfiles
-let $brookvim_root = expand("<sfile>:p")
-if has("win32")
-  let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
-  source $VIMRUNTIME/mswin.vim
-endif
-let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
-" add it into runtimepath
-let &runtimepath = $brookvim_root.",".&runtimepath
-
 function! ExpandTab(tabWidth)
-  set expandtab
-  execute 'set tabstop='.a:tabWidth
-  execute 'set shiftwidth='.a:tabWidth
-  execute 'set softtabstop='.a:tabWidth
+  setl expandtab
+  execute 'setl tabstop='.a:tabWidth
+  execute 'setl shiftwidth='.a:tabWidth
+  execute 'setl softtabstop='.a:tabWidth
   let @/="\t"
 endfunction
 let g:tabWidth = 4
 function! ShiftTab()
   if &expandtab == 0
-    ExpandTab(g:tabWidth)
+    call ExpandTab(g:tabWidth)
   else
     set tabstop=8
     set shiftwidth=8
@@ -82,10 +105,6 @@ if has("gui_mac") || has("gui_macvim")
 else
   let g:NERDTreeDirArrows = 0
 endif
-
-filetype off
-call pathogen#infect()
-filetype plugin indent on
 
 " extended key map
 let mapleader = ","
@@ -126,6 +145,7 @@ function! LaunchWebBrowser(url)
     echo a:url
   endif
 endfunction
+autocmd BufRead,BufNewFile *.as set filetype=actionscript
 autocmd FileType php        noremap <silent> <leader>r :!php %<CR>
 autocmd FileType python     noremap <silent> <leader>r :!python %<CR>
 autocmd FileType ruby       noremap <silent> <leader>r :!ruby %<CR>
