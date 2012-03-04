@@ -7,7 +7,10 @@ let $brookvim_root = expand("<sfile>:p")
 if has("win32")
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
   source $VIMRUNTIME/mswin.vim
+  let $PATH='C:\cygwin\bin;'.$PATH
+else
 endif
+set grepprg=grep\ -rsnI\ --exclude-dir=.git\ --exclude-dir=.svn\ --exclude-dir=.cvs
 let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
 " add it into runtimepath
 " let &runtimepath = $brookvim_root.",".&runtimepath
@@ -81,10 +84,10 @@ function! ShiftTab()
   if &expandtab == 0
     call ExpandTab(g:tabWidth)
   else
-    set tabstop=8
-    set shiftwidth=8
-    set softtabstop=0
-    set noexpandtab
+    setl tabstop=8
+    setl shiftwidth=8
+    setl softtabstop=0
+    setl noexpandtab
   endif
 endfunction
 nmap <S-TAB> :call ShiftTab()<cr>
@@ -146,16 +149,17 @@ function! LaunchWebBrowser(url)
   endif
 endfunction
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
-autocmd FileType php        noremap <silent> <leader>r :!php %<CR>
-autocmd FileType python     noremap <silent> <leader>r :!python %<CR>
-autocmd FileType ruby       noremap <silent> <leader>r :!ruby %<CR>
-autocmd FileType perl       noremap <silent> <leader>r :!perl %<CR>
-autocmd FileType php        noremap K :call LaunchWebBrowser("http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref")<CR>
+autocmd FileType php        noremap <buffer> <leader>r :!php %<CR>
+autocmd FileType python     noremap <buffer> <leader>r :!python %<CR>
+autocmd FileType ruby       noremap <buffer> <leader>r :!ruby %<CR>
+autocmd FileType perl       noremap <buffer> <leader>r :!perl %<CR>
+autocmd FileType php        noremap <buffer> K :call LaunchWebBrowser("http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref")<CR>
 autocmd FileType vim        setlocal keywordprg=:help
-autocmd FileType markdown   noremap <silent> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
+autocmd FileType markdown   noremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
 autocmd FileType markdown,yaml   call ExpandTab(2)
 
 noremap <leader>wt :call LaunchWebBrowser("http://dict.baidu.com/s?wd=".expand("<cword>"))<CR>
+noremap <leader>wb :call LaunchWebBrowser("http://www.baidu.com/s?wd=".expand("<cword>"))<CR>
 
 nmap <silent> <Space>q :q<CR>
 nmap <silent> <Space>t :tabe<CR>
@@ -175,21 +179,9 @@ function! CheckCscopeDB()
     endif
   endif
 endfunction
-let w:family_type = "**/*"
-function! SetFileFamily()
-  let l:ext = expand("%:e")
-  if l:ext == ""
-    let w:family_type = "**/*"
-  elseif (l:ext == "as" || l:ext == "mxml")
-    let w:family_type = "**/*.as **/*.mxml"
-  elseif (l:ext == "cpp" || l:ext == "cc" || l:ext == "cxx" || l:ext == "c" || l:ext == "m" || l:ext == "hpp" || l:ext == "hh" || l:ext == "h" || l:ext == "hxx")
-    let w:family_type = "**/*.cpp **/*.cc **/*.cxx **/*.c **/*.m **/*.hpp **/*.hh **/*.h **/*.hxx"
-  else
-    let w:family_type = "**/*.".l:ext
-  endif
-endfunction
-autocmd BufWinEnter * call SetFileFamily()
-function! LVimGrep(word)
+function! MyGrep(word)
+  let l:start = localtime()
+  let @/='\<'.a:word.'\>'
   if strlen(a:word) > 0
     let w:location_list=1
     call CheckCscopeDB()
@@ -197,9 +189,13 @@ function! LVimGrep(word)
       execute 'lcs find t '.a:word
       lw
     else
-      execute 'lvim /\<'.a:word.'\>/gj '.w:family_type.' | lw'
+      execute 'lgrep "\<'.a:word.'\>" *'
+      exec "normal \<C-O>"
+      lw
     endif
   endif
+  let l:end = localtime()
+  let g:MyGrepTime = l:end - l:start
 endfunction
 function! ToggleLocationList()
   if &buftype == "quickfix"
@@ -225,9 +221,11 @@ function! ToggleLocationList()
   endif
 endfunction
 
-com! -nargs=? -bar L :call LVimGrep(<q-args>)
-nmap <leader>g :call LVimGrep("<C-R><C-W>")<CR>
+com! -nargs=? -bar L :call MyGrep(<q-args>)
+nmap <leader>g :call MyGrep("<C-R><C-W>")<CR>
 nmap <leader>l :call ToggleLocationList()<CR>
+
+com! -nargs=1 C execute '%s/<args>//n'
 
 function! LHelpGrep(word)
   if strlen(a:word) > 0
