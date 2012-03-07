@@ -4,13 +4,20 @@ filetype off                   " required!
 
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p")
+set grepprg=grep\ -rsnI\ --exclude-dir=.git\ --exclude-dir=.svn\ --exclude-dir=.cvs
+let g:NERDTreeDirArrows = 0
 if has("win32")
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
   source $VIMRUNTIME/mswin.vim
   let $PATH='C:\cygwin\bin;'.$PATH
-else
+  let g:launchWebBrowser=":silent ! start "
+elseif has("mac")
+  set guifont=Menlo:h14
+  let g:NERDTreeDirArrows = 1
+  set grepprg=grep\ -rsnI\ --exclude=.git\ --exclude=.svn\ --exclude=.cvs
+  let g:launchWebBrowser=":silent ! open /Applications/Google\\ Chrome.app "
 endif
-set grepprg=grep\ -rsnI\ --exclude-dir=.git\ --exclude-dir=.svn\ --exclude-dir=.cvs
+
 let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
 " add it into runtimepath
 " let &runtimepath = $brookvim_root.",".&runtimepath
@@ -102,13 +109,6 @@ function! ReadExCmd(exCmd)
 endfunction
 com! -nargs=* -complete=command -bar Rx call ReadExCmd(<q-args>)
 
-if has("gui_mac") || has("gui_macvim")
-  set guifont=Menlo:h14
-  let g:NERDTreeDirArrows = 1
-else
-  let g:NERDTreeDirArrows = 0
-endif
-
 " extended key map
 let mapleader = ","
 nmap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
@@ -139,27 +139,18 @@ endfunction
 nmap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
 nmap <silent> <leader>f :tabf <cfile><CR>
 
-function! LaunchWebBrowser(url)
-  if has("win32")
-    execute ":silent ! start ".a:url
-  elseif has("mac")
-    execute ":silent ! open /Applications/Google\\ Chrome.app ".a:url
-  else
-    echo a:url
-  endif
-endfunction
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
 autocmd FileType php        noremap <buffer> <leader>r :!php %<CR>
 autocmd FileType python     noremap <buffer> <leader>r :!python %<CR>
 autocmd FileType ruby       noremap <buffer> <leader>r :!ruby %<CR>
 autocmd FileType perl       noremap <buffer> <leader>r :!perl %<CR>
-autocmd FileType php        noremap <buffer> K :call LaunchWebBrowser("http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref")<CR>
+autocmd FileType php        noremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
 autocmd FileType vim        setlocal keywordprg=:help
 autocmd FileType markdown   noremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
 autocmd FileType markdown,yaml   call ExpandTab(2)
 
-noremap <leader>wt :call LaunchWebBrowser("http://dict.baidu.com/s?wd=".expand("<cword>"))<CR>
-noremap <leader>wb :call LaunchWebBrowser("http://www.baidu.com/s?wd=".expand("<cword>"))<CR>
+noremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
+noremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 
 nmap <silent> <Space>q :q<CR>
 nmap <silent> <Space>t :tabe<CR>
@@ -183,41 +174,33 @@ function! MyGrep(word)
   let l:start = localtime()
   let @/='\<'.a:word.'\>'
   if strlen(a:word) > 0
-    let w:location_list=1
     call CheckCscopeDB()
     if g:has_cscope_db == 1
       execute 'lcs find t '.a:word
       lw
     else
       execute 'lgrep "\<'.a:word.'\>" *'
-      exec "normal \<C-O>"
-      lw
+      if len(getloclist(winnr())) > 0
+        exec "normal \<C-O>"
+        lw
+      endif
     endif
   endif
   let l:end = localtime()
   let g:MyGrepTime = l:end - l:start
 endfunction
 function! ToggleLocationList()
-  if &buftype == "quickfix"
-    if winnr() > 1
-      silent exec "normal \<C-W>k"
-      if &buftype == "quickfix"
-        silent exec "normal \<C-W>j"
-      endif
+  let l:own = winnr()
+  lw
+  let l:cwn = winnr()
+  if(l:cwn == l:own)
+    if &buftype == 'quickfix'
+      lclose
+    elseif len(getloclist(winnr())) > 0
+      lclose
+    else
+      echohl WarningMsg | echo "No location list." | echohl None
     endif
-    if &buftype == "quickfix"
-      lfirst
-      let w:location_list = 1
-    endif
-  endif
-  if exists('w:location_list') == 0
-    echohl WarningMsg | echo "Type ".g:mapleader."g to grep at first." | echohl None
-  elseif w:location_list == 1
-    lclose
-    let w:location_list = 0
-  else
-    let w:location_list = 1
-    lopen
   endif
 endfunction
 
@@ -230,8 +213,7 @@ com! -nargs=1 C execute '%s/<args>//n'
 function! LHelpGrep(word)
   if strlen(a:word) > 0
     execute 'lhelpgrep '.a:word
-    let w:location_list = 1
-    lopen
+    lw
   endif
 endfunction
 com! -nargs=1 -bar H :call LHelpGrep(<q-args>)
