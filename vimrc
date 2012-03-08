@@ -4,7 +4,7 @@ filetype off                   " required!
 
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p")
-set grepprg=grep\ -rsnI\ --exclude-dir=.git\ --exclude-dir=.svn\ --exclude-dir=.cvs
+set grepprg=grep\ -rsnI
 let g:NERDTreeDirArrows = 0
 if has("win32")
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
@@ -14,7 +14,6 @@ if has("win32")
 elseif has("mac")
   set guifont=Menlo:h14
   let g:NERDTreeDirArrows = 1
-  set grepprg=grep\ -rsnI\ --exclude=.git\ --exclude=.svn\ --exclude=.cvs
   let g:launchWebBrowser=":silent ! open /Applications/Google\\ Chrome.app "
 endif
 
@@ -40,6 +39,7 @@ Bundle 'scrooloose/nerdcommenter'
 Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
 Bundle 'tpope/vim-fugitive'
+Bundle 'surround.vim'
 
 filetype plugin indent on     " required! 
 
@@ -111,6 +111,7 @@ com! -nargs=* -complete=command -bar Rx call ReadExCmd(<q-args>)
 
 " extended key map
 let mapleader = ","
+nmap <leader>d "_d
 nmap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nmap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nmap <silent> <leader>qa :qall!<cr>
