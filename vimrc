@@ -8,13 +8,17 @@ set grepprg=grep\ -rsnI
 let g:NERDTreeDirArrows = 0
 if has("win32")
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
-  source $VIMRUNTIME/mswin.vim
   let $PATH='C:\cygwin\bin;'.$PATH
   let g:launchWebBrowser=":silent ! start "
 elseif has("mac")
   set guifont=Menlo:h14
   let g:NERDTreeDirArrows = 1
   let g:launchWebBrowser=":silent ! open /Applications/Google\\ Chrome.app "
+endif
+
+if has("gui")
+  source $VIMRUNTIME/mswin.vim
+  set clipboard=unnamed
 endif
 
 let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
@@ -118,6 +122,7 @@ nmap <silent> <leader>qa :qall!<cr>
 nmap <silent> <leader>qb :CtrlPBuffer<CR>
 nmap <silent> <leader>qf :CtrlPMRU<CR>
 nmap <silent> <leader>qx :q!<CR>
+nmap <silent> <leader>qi [I:let nr = input("Which one: ")<Bar>exe "normal " . nr ."[\t"<CR>
 nmap <silent> <leader>nh :let @/=""<CR>
 nmap <silent> <leader>sh :sp <cfile><CR>
 nmap <silent> <leader>sv :vs <cfile><CR>
@@ -139,6 +144,9 @@ function! ToggleNERDTree(dir)
 endfunction
 nmap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
 nmap <silent> <leader>f :tabf <cfile><CR>
+vmap <silent> <leader>f y:tabf <C-R>"<CR>
+ino <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
+nmap ^ /\c\<<C-R><C-W>\><CR>
 
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
 autocmd FileType php        noremap <buffer> <leader>r :!php %<CR>
@@ -154,7 +162,7 @@ noremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".exp
 noremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 
 nmap <silent> <Space>q :q<CR>
-nmap <silent> <Space>t :tabe<CR>
+noremap <silent> <Space>t :tabe<CR>
 
 set cscopequickfix=s-,c-,d-,i-,t-,e-
 let g:has_cscope_db = 0
