@@ -122,7 +122,7 @@ nmap <silent> <leader>qa :qall!<cr>
 nmap <silent> <leader>qb :CtrlPBuffer<CR>
 nmap <silent> <leader>qf :CtrlPMRU<CR>
 nmap <silent> <leader>qx :q!<CR>
-nmap <silent> <leader>qi [I:let nr = input("Which one: ")<Bar>exe "normal " . nr ."[\t"<CR>
+nmap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
 nmap <silent> <leader>nh :let @/=""<CR>
 nmap <silent> <leader>sh :sp <cfile><CR>
 nmap <silent> <leader>sv :vs <cfile><CR>
@@ -147,6 +147,14 @@ nmap <silent> <leader>f :tabf <cfile><CR>
 vmap <silent> <leader>f y:tabf <C-R>"<CR>
 ino <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
 nmap ^ /\c\<<C-R><C-W>\><CR>
+set notimeout nottimeout
+nmap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
+nmap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
+ino <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
+noremap <silent> <Space>w :new<CR>
+noremap <silent> <Space>q :q<CR>
+noremap <silent> <Space>t :tabe<CR>
+
 
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
 autocmd FileType php        noremap <buffer> <leader>r :!php %<CR>
@@ -160,9 +168,6 @@ autocmd FileType markdown,yaml   call ExpandTab(2)
 
 noremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
 noremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
-
-nmap <silent> <Space>q :q<CR>
-noremap <silent> <Space>t :tabe<CR>
 
 set cscopequickfix=s-,c-,d-,i-,t-,e-
 let g:has_cscope_db = 0
