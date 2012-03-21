@@ -123,6 +123,11 @@ nmap <silent> <leader>qb :CtrlPBuffer<CR>
 nmap <silent> <leader>qf :CtrlPMRU<CR>
 nmap <silent> <leader>qx :q!<CR>
 nmap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
+nmap <silent> <leader>qc :e!<Esc>ggdG<CR>
+nmap <silent> <leader>qd :Gdiff<CR>
+nmap <silent> <leader>qs :mksession! $HOME/_session.vim<Bar>qall!<CR>
+nmap <silent> <leader>ql :source $HOME/_session.vim<CR>
+nmap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"ZY\<CR\>"<CR>
 nmap <silent> <leader>nh :let @/=""<CR>
 nmap <silent> <leader>sh :sp <cfile><CR>
 nmap <silent> <leader>sv :vs <cfile><CR>
@@ -145,16 +150,16 @@ endfunction
 nmap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
 nmap <silent> <leader>f :tabf <cfile><CR>
 vmap <silent> <leader>f y:tabf <C-R>"<CR>
-ino <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
+inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
 nmap ^ /\c\<<C-R><C-W>\><CR>
 set notimeout nottimeout
 nmap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
 nmap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
-ino <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
+nmap <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
+inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 noremap <silent> <Space>w :new<CR>
 noremap <silent> <Space>q :q<CR>
 noremap <silent> <Space>t :tabe<CR>
-
 
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
 autocmd FileType php        noremap <buffer> <leader>r :!php %<CR>
