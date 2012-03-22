@@ -1,10 +1,32 @@
 " vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
-set nocompatible               " be iMproved
-filetype off                   " required!
+
+set nocompatible
+set grepprg=grep\ -rsnI
+set nobackup " do not keep a backup file, use versions instead
+set history=50 " keep 50 lines of command line history
+set ruler " show the cursor position all the time
+set showcmd " display incomplete commands
+set incsearch " do incremental searching
+set hlsearch    "hilight searches by default
+set cursorline
+set guioptions-=T "disable toolbar
+set guioptions-=m "disable menu 
+set notimeout nottimeout
+set wildmenu
+set laststatus=2
+set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}%{(g:cscope_db_root==getcwd()&&g:has_cscope_db==1)?'*':''}\ %=%-10{(&expandtab)?'ExpandTab-'.&tabstop:'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
+syntax on
+
+" set number
+" set paste " cause abbreviate not working under linux/terminal
+" automatic change directory to current buffer
+"if exists('+autochdir')
+  "set autochdir
+"endif
 
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p")
-set grepprg=grep\ -rsnI
+
 let g:NERDTreeDirArrows = 0
 if has("win32")
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
@@ -15,6 +37,10 @@ elseif has("mac")
   let g:NERDTreeDirArrows = 1
   let g:launchWebBrowser=":silent ! open /Applications/Google\\ Chrome.app "
 endif
+
+let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
+" add it into runtimepath
+let &runtimepath = $brookvim_root.",".&runtimepath
 
 if has("gui")
   source $VIMRUNTIME/mswin.vim
@@ -31,69 +57,64 @@ else
   nnoremap OB <C-W>j
 endif
 
-let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
-" add it into runtimepath
-let &runtimepath = $brookvim_root.",".&runtimepath
-
-let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
-call vundle#rc()
-let g:bundle_dir = $brookvim_root."/bundle/"
-
-" let Vundle manage Vundle
-" required! 
-Bundle 'gmarik/vundle'
-
-" My Bundles here:
-"
-" original repos on github
-Bundle 'actionscript.vim--Leider'
-Bundle 'Shougo/neocomplcache'
-Bundle 'Shougo/neocomplcache-snippets-complete'
-Bundle 'scrooloose/nerdcommenter'
-Bundle 'scrooloose/nerdtree'
-Bundle 'kien/ctrlp.vim'
-Bundle 'tpope/vim-fugitive'
-Bundle 'surround.vim'
-
-filetype plugin indent on     " required! 
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"set number
-set nobackup " do not keep a backup file, use versions instead
-set history=50 " keep 50 lines of command line history
-set ruler " show the cursor position all the time
-set showcmd " display incomplete commands
-set incsearch " do incremental searching
-set hlsearch    "hilight searches by default
-set cursorline
-set guioptions-=T "disable toolbar
-set guioptions-=m "disable menu 
-set notimeout nottimeout
-" set paste " cause abbreviate not working under linux/terminal
-
-" automatic change directory to current buffer
-"if exists('+autochdir')
-  "set autochdir
-"endif
-set wildmenu
-set laststatus=2
-set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}%{(g:cscope_db_root==getcwd()&&g:has_cscope_db==1)?'*':''}\ %=%-10{(&expandtab)?'ExpandTab-'.&tabstop:'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
-
-
-syntax on
 let s:schemeList=["desert", "darkspectrum","desert256",
-  \"desertEx","ir_black","moria",
-  \"twilight","wombat","zenburn"]
+  \"ir_black","moria","slate"]
 let s:random=substitute(localtime(),'\d','&+','g')
 let s:random=eval(substitute(s:random,'\(.*\)+$','(\1)%'.len(s:schemeList),''))
 let g:myScheme=s:schemeList[s:random]
 exec "colorscheme ".s:schemeList[s:random]
-highlight CursorLine  term=standout cterm=bold guibg=Grey40
+highlight CursorLine  term=standout cterm=bold
 highlight DiffAdd term=reverse cterm=bold ctermbg=green ctermfg=white 
 highlight DiffChange term=reverse cterm=bold ctermbg=cyan ctermfg=black 
 highlight DiffText term=reverse cterm=bold ctermbg=gray ctermfg=black 
 highlight DiffDelete term=reverse cterm=bold ctermbg=red ctermfg=black
 
+" extended key map
+let mapleader = ","
+nnoremap ^ /\c\<<C-R><C-W>\><CR>
+nnoremap <S-TAB> :call ShiftTab()<cr>
+nnoremap <leader>d "_d
+nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
+nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
+nnoremap <silent> <leader>qa :qall!<cr>
+nnoremap <silent> <leader>qb :CtrlPBuffer<CR>
+nnoremap <silent> <leader>qf :CtrlPMRU<CR>
+nnoremap <silent> <leader>qx :q!<CR>
+nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
+nnoremap <silent> <leader>qc :e!<Esc>ggdG<CR>
+nnoremap <silent> <leader>qd :Gdiff<CR>
+nnoremap <silent> <leader>qs :mksession! $HOME/_session.vim<Bar>qall!<CR>
+nnoremap <silent> <leader>ql :source $HOME/_session.vim<CR>
+nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"ZY\<CR\>"<CR>
+nnoremap <silent> <leader>nh :let @/=""<CR>
+nnoremap <silent> <leader>sh :sp <cfile><CR>
+nnoremap <silent> <leader>sv :vs <cfile><CR>
+nnoremap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
+nnoremap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
+nnoremap <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
+nnoremap <silent> <Space>w :new<CR>
+nnoremap <silent> <Space>q :q<CR>
+nnoremap <silent> <Space>t :tabe<CR>
+nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
+nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
+nnoremap <leader>g :call MyGrep("<C-R><C-W>")<CR>
+nnoremap <leader>l :call ToggleLocationList()<CR>
+nnoremap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
+nnoremap <silent> <leader>f :tabf <cfile><CR>
+vnoremap <silent> <leader>f y:tabf <C-R>"<CR>
+inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
+inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
+imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
+
+autocmd BufRead,BufNewFile *.as set filetype=actionscript
+autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
+autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
+autocmd FileType ruby       nnoremap <buffer> <leader>r :!ruby %<CR>
+autocmd FileType perl       nnoremap <buffer> <leader>r :!perl %<CR>
+autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
+autocmd FileType vim        setlocal keywordprg=:help
+autocmd FileType markdown   nnoremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
+autocmd FileType markdown,yaml   call ExpandTab(2)
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
 " (happens when dropping a file on gvim).
@@ -104,6 +125,19 @@ autocmd BufReadPost *
       \   exe "normal! g`\"" |
       \ endif
 
+" custom commands
+com! -nargs=1 -bar H :call LHelpGrep(<q-args>)
+com! -nargs=* -complete=command -bar Rx call ReadExCmd(<q-args>)
+com! -nargs=? -bar L :call MyGrep(<q-args>)
+com! -nargs=0 -bar HtmlImg :call HtmlImg()
+com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
+com! -nargs=0 -bar RmAllNL :%s/\n//g
+com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
+com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
+com! -nargs=1 C execute '%s/<args>//n'
+
+" my functions
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 function! ExpandTab(tabWidth)
   setl expandtab
   execute 'setl tabstop='.a:tabWidth
@@ -122,7 +156,6 @@ function! ShiftTab()
     setl noexpandtab
   endif
 endfunction
-nnoremap <S-TAB> :call ShiftTab()<cr>
 
 " Read Ex-Command output to current buffer, for example, to read output of ls, just type --
 " :Rex ls
@@ -132,67 +165,6 @@ function! ReadExCmd(exCmd)
   redi END
   exec "normal \"xp"
 endfunction
-com! -nargs=* -complete=command -bar Rx call ReadExCmd(<q-args>)
-
-" extended key map
-let mapleader = ","
-nnoremap <leader>d "_d
-nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
-nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
-nnoremap <silent> <leader>qa :qall!<cr>
-nnoremap <silent> <leader>qb :CtrlPBuffer<CR>
-nnoremap <silent> <leader>qf :CtrlPMRU<CR>
-nnoremap <silent> <leader>qx :q!<CR>
-nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
-nnoremap <silent> <leader>qc :e!<Esc>ggdG<CR>
-nnoremap <silent> <leader>qd :Gdiff<CR>
-nnoremap <silent> <leader>qs :mksession! $HOME/_session.vim<Bar>qall!<CR>
-nnoremap <silent> <leader>ql :source $HOME/_session.vim<CR>
-nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"ZY\<CR\>"<CR>
-nnoremap <silent> <leader>nh :let @/=""<CR>
-nnoremap <silent> <leader>sh :sp <cfile><CR>
-nnoremap <silent> <leader>sv :vs <cfile><CR>
-let t:NERDTreeRoot = ""
-function! s:NERDTreeOpen(dir)
-  if &bt == "" && expand("%") != ""
-    NERDTreeFind
-  else
-    execute ':NERDTree '.a:dir
-  endif
-  let t:NERDTreeRoot = a:dir
-endfunction
-function! ToggleNERDTree(dir)
-  if exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1 && t:NERDTreeRoot == a:dir
-    NERDTreeClose
-  else
-    call s:NERDTreeOpen(a:dir)
-  endif
-endfunction
-nnoremap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
-nnoremap <silent> <leader>f :tabf <cfile><CR>
-vnoremap <silent> <leader>f y:tabf <C-R>"<CR>
-inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
-nnoremap ^ /\c\<<C-R><C-W>\><CR>
-nnoremap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
-nnoremap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
-nnoremap <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
-inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
-nnoremap <silent> <Space>w :new<CR>
-nnoremap <silent> <Space>q :q<CR>
-nnoremap <silent> <Space>t :tabe<CR>
-
-autocmd BufRead,BufNewFile *.as set filetype=actionscript
-autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
-autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
-autocmd FileType ruby       nnoremap <buffer> <leader>r :!ruby %<CR>
-autocmd FileType perl       nnoremap <buffer> <leader>r :!perl %<CR>
-autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
-autocmd FileType vim        setlocal keywordprg=:help
-autocmd FileType markdown   nnoremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
-autocmd FileType markdown,yaml   call ExpandTab(2)
-
-nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
-nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 
 set cscopequickfix=s-,c-,d-,i-,t-,e-
 let g:has_cscope_db = 0
@@ -243,32 +215,54 @@ function! ToggleLocationList()
   endif
 endfunction
 
-com! -nargs=? -bar L :call MyGrep(<q-args>)
-nnoremap <leader>g :call MyGrep("<C-R><C-W>")<CR>
-nnoremap <leader>l :call ToggleLocationList()<CR>
-
-com! -nargs=1 C execute '%s/<args>//n'
-
 function! LHelpGrep(word)
   if strlen(a:word) > 0
     execute 'lhelpgrep '.a:word
     lw
   endif
 endfunction
-com! -nargs=1 -bar H :call LHelpGrep(<q-args>)
 function! HtmlImg()
   %s# #\ #g
   %s#^.*\(jpg\|png\|gif\)$#<img src="file://&">#
 endfunction
-com! -nargs=0 -bar HtmlImg :call HtmlImg()
-com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
-com! -nargs=0 -bar RmAllNL :%s/\n//g
-com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
-com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
+
+" plugins
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+filetype off
+let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
+call vundle#rc()
+let g:bundle_dir = $brookvim_root."/bundle/"
+Bundle 'gmarik/vundle'
+Bundle 'actionscript.vim--Leider'
+Bundle 'Shougo/neocomplcache'
+Bundle 'Shougo/neocomplcache-snippets-complete'
+Bundle 'scrooloose/nerdcommenter'
+Bundle 'scrooloose/nerdtree'
+Bundle 'kien/ctrlp.vim'
+Bundle 'tpope/vim-fugitive'
+Bundle 'surround.vim'
+filetype plugin indent on
+
+" nerdtree setup
+let t:NERDTreeRoot = ""
+function! s:NERDTreeOpen(dir)
+  if &bt == "" && expand("%") != ""
+    NERDTreeFind
+  else
+    execute ':NERDTree '.a:dir
+  endif
+  let t:NERDTreeRoot = a:dir
+endfunction
+function! ToggleNERDTree(dir)
+  if exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1 && t:NERDTreeRoot == a:dir
+    NERDTreeClose
+  else
+    call s:NERDTreeOpen(a:dir)
+  endif
+endfunction
 
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
-inoremap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
 
 " ctrlp setup
 let g:ctrlp_clear_cache_on_exit = 0
