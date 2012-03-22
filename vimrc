@@ -19,11 +19,21 @@ endif
 if has("gui")
   source $VIMRUNTIME/mswin.vim
   set clipboard=unnamed
+  nnoremap <C-Right> gt
+  nnoremap <C-Left> gT
+  nnoremap <C-Up> <C-W>k
+  nnoremap <C-Down> <C-W>j
+  nnoremap <S-LeftMouse> <LeftMouse>:call MyGrep(expand("<cword>"))<CR>
+else
+  nnoremap [5C gt
+  nnoremap [5D gT
+  nnoremap OA <C-W>k
+  nnoremap OB <C-W>j
 endif
 
 let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
 " add it into runtimepath
-" let &runtimepath = $brookvim_root.",".&runtimepath
+let &runtimepath = $brookvim_root.",".&runtimepath
 
 let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
 call vundle#rc()
@@ -58,6 +68,7 @@ set hlsearch    "hilight searches by default
 set cursorline
 set guioptions-=T "disable toolbar
 set guioptions-=m "disable menu 
+set notimeout nottimeout
 " set paste " cause abbreviate not working under linux/terminal
 
 " automatic change directory to current buffer
@@ -70,8 +81,18 @@ set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}%{(g:cscope_db_ro
 
 
 syntax on
-colorscheme desert
-highlight CursorLine  term=standout cterm=bold ctermbg=lightgrey guibg=Grey40
+let s:schemeList=["desert", "darkspectrum","desert256",
+  \"desertEx","ir_black","moria",
+  \"twilight","wombat","zenburn"]
+let s:random=substitute(localtime(),'\d','&+','g')
+let s:random=eval(substitute(s:random,'\(.*\)+$','(\1)%'.len(s:schemeList),''))
+let g:myScheme=s:schemeList[s:random]
+exec "colorscheme ".s:schemeList[s:random]
+highlight CursorLine  term=standout cterm=bold guibg=Grey40
+highlight DiffAdd term=reverse cterm=bold ctermbg=green ctermfg=white 
+highlight DiffChange term=reverse cterm=bold ctermbg=cyan ctermfg=black 
+highlight DiffText term=reverse cterm=bold ctermbg=gray ctermfg=black 
+highlight DiffDelete term=reverse cterm=bold ctermbg=red ctermfg=black
 
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
@@ -101,7 +122,7 @@ function! ShiftTab()
     setl noexpandtab
   endif
 endfunction
-nmap <S-TAB> :call ShiftTab()<cr>
+nnoremap <S-TAB> :call ShiftTab()<cr>
 
 " Read Ex-Command output to current buffer, for example, to read output of ls, just type --
 " :Rex ls
@@ -115,22 +136,22 @@ com! -nargs=* -complete=command -bar Rx call ReadExCmd(<q-args>)
 
 " extended key map
 let mapleader = ","
-nmap <leader>d "_d
-nmap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
-nmap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
-nmap <silent> <leader>qa :qall!<cr>
-nmap <silent> <leader>qb :CtrlPBuffer<CR>
-nmap <silent> <leader>qf :CtrlPMRU<CR>
-nmap <silent> <leader>qx :q!<CR>
-nmap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
-nmap <silent> <leader>qc :e!<Esc>ggdG<CR>
-nmap <silent> <leader>qd :Gdiff<CR>
-nmap <silent> <leader>qs :mksession! $HOME/_session.vim<Bar>qall!<CR>
-nmap <silent> <leader>ql :source $HOME/_session.vim<CR>
-nmap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"ZY\<CR\>"<CR>
-nmap <silent> <leader>nh :let @/=""<CR>
-nmap <silent> <leader>sh :sp <cfile><CR>
-nmap <silent> <leader>sv :vs <cfile><CR>
+nnoremap <leader>d "_d
+nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
+nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
+nnoremap <silent> <leader>qa :qall!<cr>
+nnoremap <silent> <leader>qb :CtrlPBuffer<CR>
+nnoremap <silent> <leader>qf :CtrlPMRU<CR>
+nnoremap <silent> <leader>qx :q!<CR>
+nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
+nnoremap <silent> <leader>qc :e!<Esc>ggdG<CR>
+nnoremap <silent> <leader>qd :Gdiff<CR>
+nnoremap <silent> <leader>qs :mksession! $HOME/_session.vim<Bar>qall!<CR>
+nnoremap <silent> <leader>ql :source $HOME/_session.vim<CR>
+nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"ZY\<CR\>"<CR>
+nnoremap <silent> <leader>nh :let @/=""<CR>
+nnoremap <silent> <leader>sh :sp <cfile><CR>
+nnoremap <silent> <leader>sv :vs <cfile><CR>
 let t:NERDTreeRoot = ""
 function! s:NERDTreeOpen(dir)
   if &bt == "" && expand("%") != ""
@@ -147,32 +168,31 @@ function! ToggleNERDTree(dir)
     call s:NERDTreeOpen(a:dir)
   endif
 endfunction
-nmap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
-nmap <silent> <leader>f :tabf <cfile><CR>
-vmap <silent> <leader>f y:tabf <C-R>"<CR>
+nnoremap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
+nnoremap <silent> <leader>f :tabf <cfile><CR>
+vnoremap <silent> <leader>f y:tabf <C-R>"<CR>
 inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
-nmap ^ /\c\<<C-R><C-W>\><CR>
-set notimeout nottimeout
-nmap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
-nmap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
-nmap <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
+nnoremap ^ /\c\<<C-R><C-W>\><CR>
+nnoremap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
+nnoremap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
+nnoremap <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
-noremap <silent> <Space>w :new<CR>
-noremap <silent> <Space>q :q<CR>
-noremap <silent> <Space>t :tabe<CR>
+nnoremap <silent> <Space>w :new<CR>
+nnoremap <silent> <Space>q :q<CR>
+nnoremap <silent> <Space>t :tabe<CR>
 
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
-autocmd FileType php        noremap <buffer> <leader>r :!php %<CR>
-autocmd FileType python     noremap <buffer> <leader>r :!python %<CR>
-autocmd FileType ruby       noremap <buffer> <leader>r :!ruby %<CR>
-autocmd FileType perl       noremap <buffer> <leader>r :!perl %<CR>
-autocmd FileType php        noremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
+autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
+autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
+autocmd FileType ruby       nnoremap <buffer> <leader>r :!ruby %<CR>
+autocmd FileType perl       nnoremap <buffer> <leader>r :!perl %<CR>
+autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
 autocmd FileType vim        setlocal keywordprg=:help
-autocmd FileType markdown   noremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
+autocmd FileType markdown   nnoremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
 autocmd FileType markdown,yaml   call ExpandTab(2)
 
-noremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
-noremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
+nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
+nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 
 set cscopequickfix=s-,c-,d-,i-,t-,e-
 let g:has_cscope_db = 0
@@ -224,8 +244,8 @@ function! ToggleLocationList()
 endfunction
 
 com! -nargs=? -bar L :call MyGrep(<q-args>)
-nmap <leader>g :call MyGrep("<C-R><C-W>")<CR>
-nmap <leader>l :call ToggleLocationList()<CR>
+nnoremap <leader>g :call MyGrep("<C-R><C-W>")<CR>
+nnoremap <leader>l :call ToggleLocationList()<CR>
 
 com! -nargs=1 C execute '%s/<args>//n'
 
@@ -248,7 +268,7 @@ com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
 
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
-imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
+inoremap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
 
 " ctrlp setup
 let g:ctrlp_clear_cache_on_exit = 0

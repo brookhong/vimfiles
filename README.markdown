@@ -1,6 +1,6 @@
 # About Brook Hong's vimfiles
 
-Used across MacVim(MAC) and gVim(WINDOWS).
+Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
 
 ## Installation
 
@@ -44,3 +44,15 @@ Used across MacVim(MAC) and gVim(WINDOWS).
     <Space>t            => new Tab
     <Space>w            => new Window
     <S-TAB>             => toggle expandtab
+
+## Extened Commands
+
+    Rx                  => Read result from command to current buffer
+    L                   => Locate PATTERN in current directory
+    C                   => Count the number of matches
+    H                   => search in Help
+    HtmlImg             => convert image file path to <img> html tag
+    Dos2Unix            => Dos2Unix
+    RmAllNL             => Remove All New Line
+    RmDupLine           => Remove Duplicate Lines
+    ClearEmptyLine      => Clear Empty Line
