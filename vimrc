@@ -36,6 +36,8 @@ elseif has("mac")
   set guifont=Menlo:h14
   let g:NERDTreeDirArrows = 1
   let g:launchWebBrowser=":silent ! open /Applications/Google\\ Chrome.app "
+elseif has("unix")
+  let g:launchWebBrowser=":silent ! /opt/chrome/chrome-wrapper "
 endif
 
 let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
@@ -50,24 +52,27 @@ if has("gui")
   nnoremap <C-Up> <C-W>k
   nnoremap <C-Down> <C-W>j
   nnoremap <S-LeftMouse> <LeftMouse>:call MyGrep(expand("<cword>"))<CR>
+
+  let s:schemeList=["desert", "darkspectrum","desert256",
+    \"ir_black","moria","slate"]
+  let s:random=substitute(localtime(),'\d','&+','g')
+  let s:random=eval(substitute(s:random,'\(.*\)+$','(\1)%'.len(s:schemeList),''))
+  let g:myScheme=s:schemeList[s:random]
+  exec "colorscheme ".s:schemeList[s:random]
 else
   nnoremap [5C gt
   nnoremap [5D gT
   nnoremap OA <C-W>k
   nnoremap OB <C-W>j
-endif
 
-let s:schemeList=["desert", "darkspectrum","desert256",
-  \"ir_black","moria","slate"]
-let s:random=substitute(localtime(),'\d','&+','g')
-let s:random=eval(substitute(s:random,'\(.*\)+$','(\1)%'.len(s:schemeList),''))
-let g:myScheme=s:schemeList[s:random]
-exec "colorscheme ".s:schemeList[s:random]
-highlight CursorLine  term=standout cterm=bold
-highlight DiffAdd term=reverse cterm=bold ctermbg=green ctermfg=white 
-highlight DiffChange term=reverse cterm=bold ctermbg=cyan ctermfg=black 
-highlight DiffText term=reverse cterm=bold ctermbg=gray ctermfg=black 
-highlight DiffDelete term=reverse cterm=bold ctermbg=red ctermfg=black
+  set t_Co=256
+  colorscheme desert
+  highlight CursorLine  term=standout cterm=bold
+  highlight DiffAdd term=reverse cterm=bold ctermbg=green ctermfg=white
+  highlight DiffChange term=reverse cterm=bold ctermbg=cyan ctermfg=black 
+  highlight DiffText term=reverse cterm=bold ctermbg=gray ctermfg=black 
+  highlight DiffDelete term=reverse cterm=bold ctermbg=red ctermfg=black
+endif
 
 " extended key map
 let mapleader = ","
@@ -97,6 +102,7 @@ nnoremap <silent> <Space>q :q<CR>
 nnoremap <silent> <Space>t :tabe<CR>
 nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
+nnoremap <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
 nnoremap <leader>g :call MyGrep("<C-R><C-W>")<CR>
 nnoremap <leader>l :call ToggleLocationList()<CR>
 nnoremap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
@@ -241,6 +247,7 @@ Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
 Bundle 'tpope/vim-fugitive'
 Bundle 'surround.vim'
+Bundle 'DBGp-client'
 filetype plugin indent on
 
 " nerdtree setup
