@@ -1,5 +1,6 @@
-" vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+" vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab foldmethod=marker
 
+" general settings {{{
 set nocompatible
 set grepprg=grep\ -rsnI
 set nobackup " do not keep a backup file, use versions instead
@@ -23,10 +24,11 @@ syntax on
 "if exists('+autochdir')
   "set autochdir
 "endif
+" }}}
 
+" OS-specific {{{
 " find root path of my vimfiles
-let $brookvim_root = expand("<sfile>:p")
-
+let $brookvim_root = expand("<sfile>:p:h")
 let g:NERDTreeDirArrows = 0
 if has("win32")
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
@@ -39,11 +41,11 @@ elseif has("mac")
 elseif has("unix")
   let g:launchWebBrowser=":silent ! /opt/chrome/chrome-wrapper "
 endif
-
-let $brookvim_root = substitute($brookvim_root,"\/[^\/]*$","","")
 " add it into runtimepath
 let &runtimepath = $brookvim_root.",".&runtimepath
+" }}}
 
+" UI-specific {{{
 if has("gui")
   source $VIMRUNTIME/mswin.vim
   set clipboard=unnamed
@@ -73,8 +75,9 @@ else
   highlight DiffText term=reverse cterm=bold ctermbg=gray ctermfg=black 
   highlight DiffDelete term=reverse cterm=bold ctermbg=red ctermfg=black
 endif
+" }}}
 
-" extended key map
+" extended key map {{{
 let mapleader = ","
 nnoremap ^ /\c\<<C-R><C-W>\><CR>
 nnoremap <S-TAB> :call ShiftTab()<cr>
@@ -111,7 +114,9 @@ vnoremap <silent> <leader>f y:tabf <C-R>"<CR>
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
 imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
+" }}}
 
+" autocmds {{{
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
 autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
 autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
@@ -130,8 +135,9 @@ autocmd BufReadPost *
       \ if line("'\"") > 1 && line("'\"") <= line("$") |
       \   exe "normal! g`\"" |
       \ endif
+" }}}
 
-" custom commands
+" custom commands {{{
 com! -nargs=1 -bar H :call LHelpGrep(<q-args>)
 com! -nargs=* -complete=command -bar Rx call ReadExCmd(<q-args>)
 com! -nargs=? -bar L :call MyGrep(<q-args>)
@@ -141,9 +147,10 @@ com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
 com! -nargs=1 C execute '%s/<args>//n'
+com! -range TrailBlanks :call TrailBlanks(<line1>, <line2>)
+" }}}
 
-" my functions
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" expandtab functions {{{
 function! ExpandTab(tabWidth)
   setl expandtab
   execute 'setl tabstop='.a:tabWidth
@@ -162,8 +169,9 @@ function! ShiftTab()
     setl noexpandtab
   endif
 endfunction
+" }}}
 
-" Read Ex-Command output to current buffer, for example, to read output of ls, just type --
+" Read Ex-Command output to current buffer, for example, to read output of ls, just type -- {{{
 " :Rex ls
 function! ReadExCmd(exCmd)
   redi @x
@@ -171,7 +179,9 @@ function! ReadExCmd(exCmd)
   redi END
   exec "normal \"xp"
 endfunction
+" }}}
 
+" MyGrep functions {{{
 set cscopequickfix=s-,c-,d-,i-,t-,e-
 let g:has_cscope_db = 0
 let g:cscope_db_root = ""
@@ -220,7 +230,9 @@ function! ToggleLocationList()
     endif
   endif
 endfunction
+" }}}
 
+" misc functions {{{
 function! LHelpGrep(word)
   if strlen(a:word) > 0
     execute 'lhelpgrep '.a:word
@@ -232,8 +244,15 @@ function! HtmlImg()
   %s#^.*\(jpg\|png\|gif\)$#<img src="file://&">#
 endfunction
 
-" plugins
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+function! TrailBlanks(s, e)
+  let l:cols = []
+  exec a:s.','.a:e."g/^/call add(cols, col('$'))"
+  let l:maxCol = max(cols)
+  exec a:s.','.a:e."g/^/let n=l:maxCol-col('$') | exec 'normal '.n.'A '"
+endfunction
+" }}}
+
+" plugins {{{
 filetype off
 let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
 call vundle#rc()
@@ -279,3 +298,4 @@ let g:ctrlp_custom_ignore = {
       \ 'dir':  '\.git$\|\.hg$\|\.svn$',
       \ 'file': '\.exe$\|\.so$\|\.dll$|\.jpg$|\.png$|\.gif$|\.zip$|\.rar$|\.iso$',
       \ }
+" }}}
