@@ -67,7 +67,6 @@ else
   nnoremap OA <C-W>k
   nnoremap OB <C-W>j
 
-  set t_Co=256
   colorscheme desert
   highlight CursorLine  term=standout cterm=bold
   highlight DiffAdd term=reverse cterm=bold ctermbg=green ctermfg=white
@@ -266,7 +265,6 @@ Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
 Bundle 'tpope/vim-fugitive'
 Bundle 'surround.vim'
-Bundle 'DBGp-client'
 filetype plugin indent on
 
 " nerdtree setup
@@ -298,4 +296,7 @@ let g:ctrlp_custom_ignore = {
       \ 'dir':  '\.git$\|\.hg$\|\.svn$',
       \ 'file': '\.exe$\|\.so$\|\.dll$|\.jpg$|\.png$|\.gif$|\.zip$|\.rar$|\.iso$',
       \ }
+
+" DBGp-client setup ?XDEBUG_SESSION_START=1
+let g:debuggerTimeout = 50
 " }}}
