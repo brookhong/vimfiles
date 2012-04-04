@@ -32,7 +32,9 @@ let $brookvim_root = expand("<sfile>:p:h")
 let g:NERDTreeDirArrows = 0
 if has("win32")
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
-  let $PATH='C:\cygwin\bin;'.$PATH
+  if $PATH !~ "\\c.cygwin.bin"
+    let $PATH='C:\cygwin\bin;'.$PATH
+  endif
   let g:launchWebBrowser=":silent ! start "
 elseif has("mac")
   set guifont=Menlo:h14
@@ -56,7 +58,7 @@ if has("gui")
   nnoremap <S-LeftMouse> <LeftMouse>:call MyGrep(expand("<cword>"))<CR>
 
   let s:schemeList=["desert", "darkspectrum","desert256",
-    \"ir_black","moria","slate"]
+    \"ir_black","moria"]
   let s:random=substitute(localtime(),'\d','&+','g')
   let s:random=eval(substitute(s:random,'\(.*\)+$','(\1)%'.len(s:schemeList),''))
   let g:myScheme=s:schemeList[s:random]
@@ -118,7 +120,11 @@ imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>
 " autocmds {{{
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
 autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
-autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
+if has('python') || has('python3')
+  autocmd FileType python     nnoremap <buffer> <leader>r :pyfile %<CR>
+else
+  autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
+endif
 autocmd FileType ruby       nnoremap <buffer> <leader>r :!ruby %<CR>
 autocmd FileType perl       nnoremap <buffer> <leader>r :!perl %<CR>
 autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>

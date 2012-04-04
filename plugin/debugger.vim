@@ -154,6 +154,7 @@ hi DbgCurrent term=reverse ctermfg=White ctermbg=Red gui=reverse
 hi DbgBreakPt term=reverse ctermfg=White ctermbg=Green gui=reverse
 
 command! -nargs=? Bp python debugger_mark('<args>')
+command! -nargs=? Bl python debugger_list()
 command! -nargs=0 Up python debugger_up()
 command! -nargs=0 Dn python debugger_down()
 sign define current text=->  texthl=DbgCurrent linehl=DbgCurrent

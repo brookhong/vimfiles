@@ -289,10 +289,14 @@ class StackWindow(VimWindow):
         fmark = '()'
       else:
         fmark = ''
+      if sys.platform == 'win32':
+        fn = node.getAttribute('filename')[8:]
+      else:
+        fn = node.getAttribute('filename')[7:]
       return str('%-2s %-15s %s:%s' % (      \
           node.getAttribute('level'),        \
           node.getAttribute('where')+fmark,  \
-          node.getAttribute('filename')[7:], \
+          fn, \
           node.getAttribute('lineno')))
   def on_create(self):
     self.command('highlight CurStack term=reverse ctermfg=White ctermbg=Red gui=reverse')
@@ -438,7 +442,10 @@ class DebugUI:
     self.line     = None
     self.winbuf   = {}
     self.cursign  = None
-    self.sessfile = "/tmp/debugger_vim_saved_session." + str(os.getpid())
+    if sys.platform == 'win32':
+      self.sessfile = "./debugger_vim_saved_session." + str(os.getpid())
+    else:
+      self.sessfile = "/tmp/debugger_vim_saved_session." + str(os.getpid())
     self.minibufexpl = minibufexpl
 
   def debug_mode(self):
@@ -788,7 +795,10 @@ class Debugger:
       </copyright>
     </init>"""
    
-    file = res.firstChild.getAttribute('fileuri')[7:]
+    if sys.platform == 'win32':
+      file = res.firstChild.getAttribute('fileuri')[8:]
+    else:
+      file = res.firstChild.getAttribute('fileuri')[7:]
     self.ui.set_srcview(file, 1)
 
   def handle_response_error(self, res):
@@ -820,7 +830,11 @@ class Debugger:
 
       self.stacks    = []
       for s in stacks:
-        self.stacks.append( {'file':  s.getAttribute('filename')[7:], \
+	if sys.platform == 'win32':
+          fn = s.getAttribute('filename')[8:]
+        else:
+          fn = s.getAttribute('filename')[7:]
+        self.stacks.append( {'file':  fn, \
                              'line':  int(s.getAttribute('lineno')),  \
                              'where': s.getAttribute('where'),        \
                              'level': int(s.getAttribute('level'))
@@ -970,6 +984,11 @@ class Debugger:
       self.ui.stackwin.highlight_stack(self.curstack)
       self.ui.set_srcview(self.stacks[self.curstack]['file'], self.stacks[self.curstack]['line'])
 
+  def list(self):
+    self.ui.watchwin.write('--> breakpoints list: ')
+    for bno in self.breakpt.list():
+      self.ui.watchwin.write('  ' + self.breakpt.getfile(bno) + ':' + str(self.breakpt.getline(bno)))
+
   def mark(self, exp = ''):
     (row, rol) = vim.current.window.cursor
     file       = vim.current.buffer.name
@@ -1118,6 +1137,15 @@ def debugger_property(name = ''):
 def debugger_mark(exp = ''):
   try:
     debugger.mark(exp)
+  except:
+    debugger.ui.tracewin.write(sys.exc_info())
+    debugger.ui.tracewin.write("".join(traceback.format_tb( sys.exc_info()[2])))
+    debugger.stop()
+    print 'Connection closed, stop debugging', sys.exc_info()
+
+def debugger_list(exp = ''):
+  try:
+    debugger.list()
   except:
     debugger.ui.tracewin.write(sys.exc_info())
     debugger.ui.tracewin.write("".join(traceback.format_tb( sys.exc_info()[2])))
