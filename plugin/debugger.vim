@@ -154,7 +154,8 @@ hi DbgCurrent term=reverse ctermfg=White ctermbg=Red gui=reverse
 hi DbgBreakPt term=reverse ctermfg=White ctermbg=Green gui=reverse
 
 command! -nargs=? Bp python debugger_mark('<args>')
-command! -nargs=? Bl python debugger_list()
+command! -nargs=0 Bl python debugger.list()
+command! -nargs=? Pg python debugger_property("<args>")
 command! -nargs=0 Up python debugger_up()
 command! -nargs=0 Dn python debugger_down()
 sign define current text=->  texthl=DbgCurrent linehl=DbgCurrent
@@ -164,7 +165,7 @@ if !exists('g:debuggerPort')
   let g:debuggerPort = 9000
 endif 
 if !exists('g:debuggerTimeout')
-  let g:debuggerTimeout = 0
+  let g:debuggerTimeout = 5
 endif 
 if !exists('g:debuggerMaxChildren')
   let g:debuggerMaxChildren = 32

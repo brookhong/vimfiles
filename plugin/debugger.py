@@ -1083,7 +1083,7 @@ def debugger_init(debug = 0):
   if minibufexpl == 0:
     minibufexpl = 0
 
-  debugger  = Debugger(port, max_children, max_data, max_depth, minibufexpl, debug, timeout)
+  debugger = Debugger(port, max_children, max_data, max_depth, minibufexpl, debug, timeout)
 
 def debugger_command(msg, arg1 = '', arg2 = ''):
   try:
@@ -1127,7 +1127,7 @@ def debugger_context():
 
 def debugger_property(name = ''):
   try:
-    debugger.property_get()
+    debugger.property_get(name)
   except:
     debugger.ui.tracewin.write(sys.exc_info())
     debugger.ui.tracewin.write("".join(traceback.format_tb( sys.exc_info()[2])))
@@ -1137,15 +1137,6 @@ def debugger_property(name = ''):
 def debugger_mark(exp = ''):
   try:
     debugger.mark(exp)
-  except:
-    debugger.ui.tracewin.write(sys.exc_info())
-    debugger.ui.tracewin.write("".join(traceback.format_tb( sys.exc_info()[2])))
-    debugger.stop()
-    print 'Connection closed, stop debugging', sys.exc_info()
-
-def debugger_list(exp = ''):
-  try:
-    debugger.list()
   except:
     debugger.ui.tracewin.write(sys.exc_info())
     debugger.ui.tracewin.write("".join(traceback.format_tb( sys.exc_info()[2])))

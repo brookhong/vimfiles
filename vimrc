@@ -51,24 +51,14 @@ let &runtimepath = $brookvim_root.",".&runtimepath
 if has("gui")
   source $VIMRUNTIME/mswin.vim
   set clipboard=unnamed
-  nnoremap <C-Right> gt
-  nnoremap <C-Left> gT
-  nnoremap <C-Up> <C-W>k
-  nnoremap <C-Down> <C-W>j
   nnoremap <S-LeftMouse> <LeftMouse>:call MyGrep(expand("<cword>"))<CR>
 
-  let s:schemeList=["desert", "darkspectrum","desert256",
-    \"ir_black","moria"]
+  let s:schemeList=["desert", "darkspectrum","desert256","ir_black","moria"]
   let s:random=substitute(localtime(),'\d','&+','g')
   let s:random=eval(substitute(s:random,'\(.*\)+$','(\1)%'.len(s:schemeList),''))
   let g:myScheme=s:schemeList[s:random]
   exec "colorscheme ".s:schemeList[s:random]
 else
-  nnoremap [5C gt
-  nnoremap [5D gT
-  nnoremap OA <C-W>k
-  nnoremap OB <C-W>j
-
   colorscheme desert
   highlight CursorLine  term=standout cterm=bold
   highlight DiffAdd term=reverse cterm=bold ctermbg=green ctermfg=white
@@ -102,6 +92,7 @@ nnoremap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
 nnoremap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
 nnoremap <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
 nnoremap <silent> <Space>w :new<CR>
+nnoremap <silent> <Space>v :vnew<CR>
 nnoremap <silent> <Space>q :q<CR>
 nnoremap <silent> <Space>t :tabe<CR>
 nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
@@ -257,7 +248,7 @@ function! TrailBlanks(s, e)
 endfunction
 " }}}
 
-" plugins {{{
+" plugins for php debugger: ?XDEBUG_SESSION_START=1& {{{
 filetype off
 let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
 call vundle#rc()
@@ -271,6 +262,7 @@ Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
 Bundle 'tpope/vim-fugitive'
 Bundle 'surround.vim'
+Bundle 'fholgado/minibufexpl.vim'
 filetype plugin indent on
 
 " nerdtree setup
@@ -303,6 +295,11 @@ let g:ctrlp_custom_ignore = {
       \ 'file': '\.exe$\|\.so$\|\.dll$|\.jpg$|\.png$|\.gif$|\.zip$|\.rar$|\.iso$',
       \ }
 
-" DBGp-client setup ?XDEBUG_SESSION_START=1
-let g:debuggerTimeout = 50
+let g:miniBufExplMapWindowNavVim = 1 
+let g:miniBufExplMapWindowNavArrows = 1 
+let g:miniBufExplMapCTabSwitchBufs = 1 
+let g:miniBufExplModSelTarget = 1
+" don't show MiniBufExplorer for conflict with fugitive
+let g:miniBufExplorerMoreThanOne=99
+
 " }}}
