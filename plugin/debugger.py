@@ -418,14 +418,14 @@ class HelpWindow(VimWindow):
     self.write(                                                          \
         '[ Function Keys ]                 |                       \n' + \
         '  <F1>   resize                   | [ Normal Mode ]       \n' + \
-        '  <F2>   step into                |   ,e  eval            \n' + \
+        '  <F2>   step into                |   ,pe  eval           \n' + \
         '  <F3>   step over                |                       \n' + \
-        '  <F4>   step out                 |                       \n' + \
-        '  <F5>   run                      | [ Command Mode ]      \n' + \
-        '  <F6>   quit debugging           | :Bp toggle breakpoint \n' + \
-        '                                  | :Up stack up          \n' + \
-        '  <F11>  get all context          | :Dn stack down        \n' + \
-        '  <F12>  get property at cursor   |                       \n' + \
+        '  <F4>   step out                 | [ Command Mode ]      \n' + \
+        '  <F5>   run                      | :Bp toggle breakpoint \n' + \
+        '  <F6>   quit debugging           | :Up stack up          \n' + \
+	'                                  | :Dn stack down        \n' + \
+	'  <F11>  get all context          | :Bl list breakpoints  \n' + \
+        '  <F12>  get property at cursor   | :Pg property get      \n' + \
         '\n')
     self.command('1')
 
