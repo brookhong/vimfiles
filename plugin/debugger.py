@@ -28,22 +28,23 @@
 # Authors:
 #    Seung Woo Shin <segv <at> sayclub.com>
 #    Sam Ghods <sam <at> box.net>
+#    Brook Hong <hzgmaxwell <at> hotmail.com>
 
 """
-	debugger.py -- DBGp client: a remote debugger interface to DBGp protocol
+    debugger.py -- DBGp client: a remote debugger interface to DBGp protocol
 
     Usage:
         Use with the debugger.vim vim plugin
 
     This debugger is designed to be used with debugger.vim,
-	a vim plugin which provides a full debugging environment
-	right inside vim.
+    a vim plugin which provides a full debugging environment
+    right inside vim.
 
-	CHECK DEBUGGER.VIM FOR THE FULL DOCUMENTATION.
+    CHECK DEBUGGER.VIM FOR THE FULL DOCUMENTATION.
 
     Example usage:
         Place inside <source vim directory>/plugin/ along with
-		debugger.py.
+        debugger.py.
 """
 
 import os
@@ -54,6 +55,7 @@ import base64
 import traceback
 import xml.dom.minidom
 
+from threading import Thread
 #######################################################################################################################
 #                                                                                                                     #
 # this diagram is little outdated.                                                                                    #
@@ -423,8 +425,8 @@ class HelpWindow(VimWindow):
         '  <F4>   step out                 | [ Command Mode ]      \n' + \
         '  <F5>   run                      | :Bp toggle breakpoint \n' + \
         '  <F6>   quit debugging           | :Up stack up          \n' + \
-	'                                  | :Dn stack down        \n' + \
-	'  <F11>  get all context          | :Bl list breakpoints  \n' + \
+        '                                  | :Dn stack down        \n' + \
+        '  <F11>  get all context          | :Bl list breakpoints  \n' + \
         '  <F12>  get property at cursor   | :Pg property get      \n' + \
         '\n')
     self.command('1')
@@ -546,36 +548,44 @@ class DebugUI:
     self.line    = line
     self.cursign = nextsign
 
-class DbgProtocol:
+class DbgProtocol(Thread):
+  (INIT,LISTEN,CONNECTED,CLOSED) = (0,1,2,3)
+  STATUS = ["Init","Listen","Connected","Closed"]
   """ DBGp Procotol class """
   def __init__(self, port = 9000):
     self.port     = port
     self.sock     = None
-    self.isconned = 0
-  def isconnected(self):
-    return self.isconned
-  def accept(self):
-    print 'waiting for a new connection on port '+str(self.port)+' for '+str(socket.getdefaulttimeout())+' seconds...'
+    self._status  = self.INIT
+    Thread.__init__(self)
+  def setStatus(self,s):
+    vim.command("set statusline-=%{'--PHPDEBUG-Closed'}")
+    vim.command("set statusline-=%{'--PHPDEBUG-"+self.STATUS[self._status]+"'}")
+    self._status = s
+    vim.command("set statusline+=%{'--PHPDEBUG-"+self.STATUS[self._status]+"'}")
+  def start(self):
+    Thread.start(self)
+  def status(self):
+    return self._status
+  def run(self):
     serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-      serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-      serv.bind(('', self.port))
-      serv.listen(5)
-      (self.sock, address) = serv.accept()
-    except socket.timeout:
-      serv.close()
-      self.stop()
-      print 'timeout'
-      return
-
-    print 'connection from ', address
-    self.isconned = 1
+    serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    serv.bind(('', self.port))
+    serv.listen(5)
+    self.setStatus(self.LISTEN)
+    (self.sock, address) = serv.accept()
     serv.close()
+    if self._status == self.LISTEN:
+      self.setStatus(self.CONNECTED)
+      vim.command("python debugger.debugMode()")
   def close(self):
-    if self.sock != None:
+    if self._status == self.LISTEN:
+      client = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+      client.connect ( ( '', self.port ) )
+      client.close()
+    elif self.sock != None:
       self.sock.close()
       self.sock = None
-    self.isconned = 0
+    self.setStatus(self.CLOSED)
   def recv_length(self):
     #print '* recv len'
     length = ''
@@ -668,9 +678,8 @@ class Debugger:
   #################################################################################################################
   # Internal functions
   #
-  def __init__(self, port = 9000, max_children = '32', max_data = '1024', max_depth = '1', minibufexpl = '0', debug = 0, timeout = 5):
+  def __init__(self, port = 9000, max_children = '32', max_data = '1024', max_depth = '1', minibufexpl = '0', debug = 0):
     """ initialize Debugger """
-    socket.setdefaulttimeout(timeout)
     self.port       = port
     self.debug      = debug
 
@@ -804,18 +813,12 @@ class Debugger:
   def handle_response_error(self, res):
     """ handle <error> tag """
     self.ui.tracewin.write_xml_childs(res)
-#    print 'ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-#    print res.toprettyxml()
-#    print '------------------------------------'
-#
-#    errors  = res.getElementsByTagName('error')
-#    #print 'list: ', len(errors), errors
-#    if len(errors)>0:
-#      return
-#    for error in errors:
-#      code = error.getAttribute('code')
-#      print 'error code=', code
-#    print res
+    errors  = res.getElementsByTagName('error')
+    for error in errors:
+      code = int(error.getAttribute('code'))
+      if code == 5:
+        self.command('run')
+        break
 
   def handle_response_stack_get(self, res):
     """handle <response command=stack_get> tag
@@ -830,7 +833,7 @@ class Debugger:
 
       self.stacks    = []
       for s in stacks:
-	if sys.platform == 'win32':
+        if sys.platform == 'win32':
           fn = s.getAttribute('filename')[8:]
         else:
           fn = s.getAttribute('filename')[7:]
@@ -933,36 +936,40 @@ class Debugger:
     return msgid
   def run(self):
     """ start debugger or continue """
-    if self.protocol.isconnected():
+    status = self.protocol.status()
+    if status == DbgProtocol.CONNECTED:
       self.command('run')
       if self.status != 'stopped':
         self.command('stack_get')
-    else:
-      self.clear()
-      self.protocol.accept()
-      self.ui.debug_mode()
-      self.running = 1
+    elif status == DbgProtocol.INIT:
+        self.protocol.start()
+    elif status == DbgProtocol.CLOSED:
+        self.protocol = DbgProtocol(self.port)
+        self.protocol.start()
+  def debugMode(self):
+    self.ui.debug_mode()
+    self.running = 1
 
-      self.recv(1)
+    self.recv(1)
 
-      # set max data to get with eval results
-      self.command('feature_set', '-n max_children -v ' + self.max_children)
-      self.command('feature_set', '-n max_data -v ' + self.max_data)
-      self.command('feature_set', '-n max_depth -v ' + self.max_depth)
+    # set max data to get with eval results
+    self.command('feature_set', '-n max_children -v ' + self.max_children)
+    self.command('feature_set', '-n max_data -v ' + self.max_data)
+    self.command('feature_set', '-n max_depth -v ' + self.max_depth)
 
-      self.command('step_into')
+    self.command('step_into')
 
-      flag = 0
-      for bno in self.breakpt.list():
-        msgid = self.send_command('breakpoint_set', \
-                                  '-t line -f ' + self.breakpt.getfile(bno) + ' -n ' + str(self.breakpt.getline(bno)) + ' -s enabled', \
-                                  self.breakpt.getexp(bno))
-        self.bptsetlst[msgid] = bno
-        flag = 1
-      if flag:
-        self.recv()
+    flag = 0
+    for bno in self.breakpt.list():
+      msgid = self.send_command('breakpoint_set', \
+                                '-t line -f ' + self.breakpt.getfile(bno) + ' -n ' + str(self.breakpt.getline(bno)) + ' -s enabled', \
+                                self.breakpt.getexp(bno))
+      self.bptsetlst[msgid] = bno
+      flag = 1
+    if flag:
+      self.recv()
 
-      self.ui.go_srcview()
+    self.ui.go_srcview()
 
   def quit(self):
     self.ui.normal_mode()
@@ -998,13 +1005,13 @@ class Debugger:
       id = self.breakpt.getid(bno)
       self.breakpt.remove(bno)
       vim.command('sign unplace ' + str(bno))
-      if self.protocol.isconnected():
+      if self.protocol.status() == DbgProtocol.CONNECTED:
         self.send_command('breakpoint_remove', '-d ' + str(id))
         self.recv()
     else:
       bno = self.breakpt.add(file, row, exp)
       vim.command('sign place ' + str(bno) + ' name=breakpt line=' + str(row) + ' file=' + file)
-      if self.protocol.isconnected():
+      if self.protocol.status() == DbgProtocol.CONNECTED:
         msgid = self.send_command('breakpoint_set', \
                                   '-t line -f ' + self.breakpt.getfile(bno) + ' -n ' + str(self.breakpt.getline(bno)), \
                                   self.breakpt.getexp(bno))
@@ -1062,10 +1069,6 @@ def debugger_init(debug = 0):
   if port == 0:
     port = 9000
 
-  timeout = int(vim.eval('debuggerTimeout'))
-  if timeout == 0:
-    timeout = 5
-
   # the max_depth variable to set in the engine
   max_children = vim.eval('debuggerMaxChildren')
   if max_children == '':
@@ -1083,7 +1086,7 @@ def debugger_init(debug = 0):
   if minibufexpl == 0:
     minibufexpl = 0
 
-  debugger = Debugger(port, max_children, max_data, max_depth, minibufexpl, debug, timeout)
+  debugger = Debugger(port, max_children, max_data, max_depth, minibufexpl, debug)
 
 def debugger_command(msg, arg1 = '', arg2 = ''):
   try:
@@ -1160,10 +1163,6 @@ def debugger_down():
     debugger.ui.tracewin.write("".join(traceback.format_tb( sys.exc_info()[2])))
     debugger.stop()
     print 'Connection closed, stop debugging', sys.exc_info()
-
-def debugger_quit():
-  global debugger
-  debugger.quit()
 
 mode = 0
 def debugger_resize():

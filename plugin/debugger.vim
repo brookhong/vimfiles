@@ -139,7 +139,7 @@ map <Leader>dt :python debugger_command('step_out')<cr>
 nnoremap ,pe :python debugger_watch_input("eval")<cr>A
 
 map <F5> :python debugger_run()<cr>
-map <F6> :python debugger_quit()<cr>
+map <F6> :python debugger.quit()<cr>
 
 map <F7> :python debugger_command('step_into')<cr>
 map <F8> :python debugger_command('step_over')<cr>
@@ -158,14 +158,12 @@ command! -nargs=0 Bl python debugger.list()
 command! -nargs=? Pg python debugger_property("<args>")
 command! -nargs=0 Up python debugger_up()
 command! -nargs=0 Dn python debugger_down()
+command! -nargs=0 Dstatus python print DbgProtocol.STATUS[debugger.protocol.status()]
 sign define current text=->  texthl=DbgCurrent linehl=DbgCurrent
 sign define breakpt text=B>  texthl=DbgBreakPt linehl=DbgBreakPt
 
 if !exists('g:debuggerPort')
   let g:debuggerPort = 9000
-endif 
-if !exists('g:debuggerTimeout')
-  let g:debuggerTimeout = 5
 endif 
 if !exists('g:debuggerMaxChildren')
   let g:debuggerMaxChildren = 32
@@ -180,3 +178,5 @@ if !exists('g:debuggerMiniBufExpl')
   let g:debuggerMiniBufExpl = 0
 endif
 python debugger_init(1)
+set laststatus=2
+autocmd VimLeavePre * python debugger.quit()
