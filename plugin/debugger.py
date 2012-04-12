@@ -55,7 +55,8 @@ import base64
 import traceback
 import xml.dom.minidom
 
-from threading import Thread
+import time
+from threading import Thread,Lock
 #######################################################################################################################
 #                                                                                                                     #
 # this diagram is little outdated.                                                                                    #
@@ -550,18 +551,18 @@ class DebugUI:
 
 class DbgProtocol(Thread):
   (INIT,LISTEN,CONNECTED,CLOSED) = (0,1,2,3)
-  STATUS = ["Init","Listen","Connected","Closed"]
+  STATUS = ["Init","Lisn","Conn","Clsd"]
   """ DBGp Procotol class """
   def __init__(self, port = 9000):
     self.port     = port
     self.sock     = None
     self._status  = self.INIT
+    self.lock = Lock()
     Thread.__init__(self)
   def setStatus(self,s):
-    vim.command("set statusline-=%{'--PHPDEBUG-Closed'}")
-    vim.command("set statusline-=%{'--PHPDEBUG-"+self.STATUS[self._status]+"'}")
+    self.lock.acquire()
     self._status = s
-    vim.command("set statusline+=%{'--PHPDEBUG-"+self.STATUS[self._status]+"'}")
+    self.lock.release()
   def start(self):
     Thread.start(self)
   def status(self):
@@ -573,14 +574,16 @@ class DbgProtocol(Thread):
     serv.listen(5)
     self.setStatus(self.LISTEN)
     (self.sock, address) = serv.accept()
+    time.sleep(1)
     serv.close()
     if self._status == self.LISTEN:
       self.setStatus(self.CONNECTED)
       vim.command("python debugger.debugMode()")
   def close(self):
     if self._status == self.LISTEN:
+      print 'Stopping debug engine ...'
       client = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-      client.connect ( ( '', self.port ) )
+      client.connect ( ( '127.0.0.1', self.port ) )
       client.close()
     elif self.sock != None:
       self.sock.close()
@@ -706,6 +709,7 @@ class Debugger:
     vim.command('sign unplace *')
 
   def clear(self):
+    self.protocol.close()
     self.current   = None
     self.lasterror = None
     self.msgid     = 0
@@ -714,8 +718,6 @@ class Debugger:
     self.curstack  = 0
     self.laststack = 0
     self.bptsetlst = {} 
-
-    self.protocol.close()
 
   def send(self, msg):
     """ send message """
@@ -972,8 +974,8 @@ class Debugger:
     self.ui.go_srcview()
 
   def quit(self):
-    self.ui.normal_mode()
     self.clear()
+    self.ui.normal_mode()
     #vim.command('MiniBufExplorer')
 
   def stop(self):

@@ -112,7 +112,7 @@
 " }}}
 
 " Do not source this script when python is not compiled in.
-if !has("python")
+if !has("python") || !exists('g:debuggerPort')
     finish
 endif
 
@@ -162,9 +162,6 @@ command! -nargs=0 Dstatus python print DbgProtocol.STATUS[debugger.protocol.stat
 sign define current text=->  texthl=DbgCurrent linehl=DbgCurrent
 sign define breakpt text=B>  texthl=DbgBreakPt linehl=DbgBreakPt
 
-if !exists('g:debuggerPort')
-  let g:debuggerPort = 9000
-endif 
 if !exists('g:debuggerMaxChildren')
   let g:debuggerMaxChildren = 32
 endif
@@ -179,4 +176,10 @@ if !exists('g:debuggerMiniBufExpl')
 endif
 python debugger_init(1)
 set laststatus=2
+function! DebuggerStatus()
+  python vim.command("return '"+DbgProtocol.STATUS[debugger.protocol.status()]+"'")
+endfunction
+if &statusline !~ "--PHPDEBUG^@'.DebuggerStatus()"
+  set statusline+=%{'--PHPDEBUG^@'.DebuggerStatus()}
+endif
 autocmd VimLeavePre * python debugger.quit()
