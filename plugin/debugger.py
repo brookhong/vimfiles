@@ -55,7 +55,6 @@ import base64
 import traceback
 import xml.dom.minidom
 
-import time
 from threading import Thread,Lock
 #######################################################################################################################
 #                                                                                                                     #
@@ -559,44 +558,47 @@ class DbgProtocol(Thread):
     self._status  = self.INIT
     self.lock = Lock()
     Thread.__init__(self)
-  def setStatus(self,s):
-    self.lock.acquire()
-    self._status = s
-    self.lock.release()
-  def start(self):
-    Thread.start(self)
   def status(self):
     return self._status
-  def run(self):
-    serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    serv.bind(('', self.port))
-    serv.listen(5)
-    self.setStatus(self.LISTEN)
-    (self.sock, address) = serv.accept()
-    time.sleep(1)
-    serv.close()
-    if self._status == self.LISTEN:
-      self.setStatus(self.CONNECTED)
-      vim.command("python debugger.debugMode()")
   def close(self):
+    self.lock.acquire()
     if self._status == self.LISTEN:
-      print 'Stopping debug engine ...'
       client = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
       client.connect ( ( '127.0.0.1', self.port ) )
       client.close()
     elif self.sock != None:
       self.sock.close()
       self.sock = None
-    self.setStatus(self.CLOSED)
+    self._status = self.CLOSED
+    self.lock.release()
+  def run(self):
+    global debugger
+    serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    serv.bind(('', self.port))
+    serv.listen(5)
+    self._status = self.LISTEN
+    (self.sock, address) = serv.accept()
+    serv.close()
+    self.lock.acquire()
+    if self._status == self.LISTEN:
+      self._status = self.CONNECTED
+      debugger.debugMode()
+    self.lock.release()
+  def recv_data(self,len):
+    global debugger
+    c = self.sock.recv(len)
+    if c == '':
+      # LINUX come here
+      self.close()
+      debugger.restart()
+      raise EOFError, 'Socket Closed, try to restart debug engine ...'
+    return c
   def recv_length(self):
     #print '* recv len'
     length = ''
     while 1:
-      c = self.sock.recv(1)
-      if c == '':
-        self.close()
-        raise EOFError, 'Socket Closed'
+      c = self.recv_data(1)
       #print '  GET(',c, ':', ord(c), ') : length=', len(c)
       if c == '\0':
         return int(length)
@@ -604,26 +606,28 @@ class DbgProtocol(Thread):
         length = length + c
   def recv_null(self):
     while 1:
-      c = self.sock.recv(1)
-      if c == '':
-        self.close()
-        raise EOFError, 'Socket Closed'
+      c = self.recv_data(1)
       if c == '\0':
         return
   def recv_body(self, to_recv):
     body = ''
     while to_recv > 0:
-      buf = self.sock.recv(to_recv)
-      if buf == '':
-        self.close()
-        raise EOFError, 'Socket Closed'
+      buf = self.recv_data(to_recv)
       to_recv -= len(buf)
       body = body + buf
     return body
   def recv_msg(self):
-    length = self.recv_length()
-    body   = self.recv_body(length)
-    self.recv_null()
+    global debugger
+    try:
+      length = self.recv_length()
+      body   = self.recv_body(length)
+      self.recv_null()
+    except socket.error, e:
+      # WINDOWS come here
+      if e[0] == 10053:
+        self.close()
+        debugger.restart()
+        raise EOFError, 'Socket Closed, try to restart debug engine ...'
     return body
   def send_msg(self, cmd):
     self.sock.send(cmd + '\0')
@@ -936,6 +940,9 @@ class Debugger:
     msgid = self.send_command(cmd, arg1, arg2)
     self.recv()
     return msgid
+  def restart(self):
+    self.protocol = DbgProtocol(self.port)
+    self.protocol.start()
   def run(self):
     """ start debugger or continue """
     status = self.protocol.status()
@@ -1107,8 +1114,6 @@ def debugger_run():
   except:
     debugger.ui.tracewin.write(sys.exc_info())
     debugger.ui.tracewin.write("".join(traceback.format_tb( sys.exc_info()[2])))
-    debugger.stop()
-    print 'Connection closed, stop debugging', sys.exc_info()
 
 def debugger_watch_input(cmd, arg = ''):
   try:

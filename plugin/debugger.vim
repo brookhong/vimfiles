@@ -110,7 +110,7 @@
 "
 "=============================================================================
 " }}}
-
+" php -dxdebug.remote_autostart=1 test.php
 " Do not source this script when python is not compiled in.
 if !has("python") || !exists('g:debuggerPort')
     finish
