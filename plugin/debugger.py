@@ -548,6 +548,12 @@ class DebugUI:
     self.line    = line
     self.cursign = nextsign
 
+class DebugMode(Thread):
+  def __init__(self):
+    Thread.__init__(self)
+  def run(self):
+    global debugger
+    debugger.debugMode()
 class DbgProtocol(Thread):
   (INIT,LISTEN,CONNECTED,CLOSED) = (0,1,2,3)
   STATUS = ["Init","Lisn","Conn","Clsd"]
@@ -559,7 +565,10 @@ class DbgProtocol(Thread):
     self.lock = Lock()
     Thread.__init__(self)
   def status(self):
-    return self._status
+    self.lock.acquire()
+    s = self._status
+    self.lock.release()
+    return s
   def close(self):
     self.lock.acquire()
     if self._status == self.LISTEN:
@@ -572,7 +581,6 @@ class DbgProtocol(Thread):
     self._status = self.CLOSED
     self.lock.release()
   def run(self):
-    global debugger
     serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     serv.bind(('', self.port))
@@ -583,7 +591,8 @@ class DbgProtocol(Thread):
     self.lock.acquire()
     if self._status == self.LISTEN:
       self._status = self.CONNECTED
-      debugger.debugMode()
+      dm = DebugMode()
+      dm.start()
     self.lock.release()
   def recv_data(self,len):
     global debugger
@@ -622,13 +631,15 @@ class DbgProtocol(Thread):
       length = self.recv_length()
       body   = self.recv_body(length)
       self.recv_null()
+      return body
     except socket.error, e:
       # WINDOWS come here
       if e[0] == 10053:
         self.close()
         debugger.restart()
         raise EOFError, 'Socket Closed, try to restart debug engine ...'
-    return body
+      else:
+        raise EOFError, 'Socket Error '+str(e[0])
   def send_msg(self, cmd):
     self.sock.send(cmd + '\0')
 
