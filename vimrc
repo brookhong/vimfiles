@@ -53,7 +53,7 @@ if has("gui")
   set clipboard=unnamed
   nnoremap <S-LeftMouse> <LeftMouse>:call MyGrep(expand("<cword>"))<CR>
 
-  let s:schemeList=["desert", "darkspectrum","desert256","ir_black","moria"]
+  let s:schemeList=["desert", "darkspectrum","desert256","moria"]
   let s:random=substitute(localtime(),'\d','&+','g')
   let s:random=eval(substitute(s:random,'\(.*\)+$','(\1)%'.len(s:schemeList),''))
   let g:myScheme=s:schemeList[s:random]
@@ -262,7 +262,7 @@ Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
 Bundle 'tpope/vim-fugitive'
 Bundle 'surround.vim'
-Bundle 'fholgado/minibufexpl.vim'
+Bundle 'brookhong/DBGPavim'
 filetype plugin indent on
 
 " nerdtree setup
