@@ -176,10 +176,4 @@ if !exists('g:debuggerMiniBufExpl')
 endif
 python debugger_init(1)
 set laststatus=2
-function! DebuggerStatus()
-  python vim.command("return '"+DbgProtocol.STATUS[debugger.protocol.status()]+"'")
-endfunction
-if &statusline !~ "--PHPDEBUG^@'.DebuggerStatus()"
-  set statusline+=%{'--PHPDEBUG^@'.DebuggerStatus()}
-endif
 autocmd VimLeavePre * python debugger.quit()

@@ -486,6 +486,7 @@ class DebugUI:
     self.destroy()
 
     # restore session
+    vim.command('silent tabonly')
     vim.command('source ' + self.sessfile)
     os.system('rm -f ' + self.sessfile)
 
@@ -555,7 +556,7 @@ class DebugMode(Thread):
     global debugger
     debugger.debugMode()
 class DbgProtocol(Thread):
-  (INIT,LISTEN,CONNECTED,CLOSED) = (0,1,2,3)
+  (INIT,LISTEN,CONNECTED,CLOSED,PENDING) = (0,1,2,3,4)
   STATUS = ["Init","Lisn","Conn","Clsd"]
   """ DBGp Procotol class """
   def __init__(self, port = 9000):
@@ -581,6 +582,7 @@ class DbgProtocol(Thread):
     self._status = self.CLOSED
     self.lock.release()
   def run(self):
+    global debugger
     serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     serv.bind(('', self.port))
@@ -590,9 +592,9 @@ class DbgProtocol(Thread):
     serv.close()
     self.lock.acquire()
     if self._status == self.LISTEN:
-      self._status = self.CONNECTED
-      dm = DebugMode()
-      dm.start()
+      self._status = self.PENDING
+      debugger.updateStatusLine("--PEND")
+      print "Press <F5> to continue..."
     self.lock.release()
   def recv_data(self,len):
     global debugger
@@ -719,9 +721,14 @@ class Debugger:
     self.protocol   = DbgProtocol(self.port)
 
     self.ui         = DebugUI(minibufexpl)
+    self.statusline = vim.eval('&statusline')
     self.breakpt    = BreakPoint()
 
     vim.command('sign unplace *')
+
+  def updateStatusLine(self,msg):
+    sl = self.statusline+"%{'"+msg+"'}"
+    vim.command("let &statusline=\""+sl+"\"")
 
   def clear(self):
     self.protocol.close()
@@ -952,6 +959,8 @@ class Debugger:
     self.recv()
     return msgid
   def restart(self):
+    self.running = 0
+    self.updateStatusLine("--LISN")
     self.protocol = DbgProtocol(self.port)
     self.protocol.start()
   def run(self):
@@ -963,10 +972,16 @@ class Debugger:
         self.command('stack_get')
     elif status == DbgProtocol.INIT:
         self.protocol.start()
+        self.updateStatusLine("--LISN")
     elif status == DbgProtocol.CLOSED:
         self.protocol = DbgProtocol(self.port)
         self.protocol.start()
+        self.updateStatusLine("--LISN")
+    elif status == DbgProtocol.PENDING and self.running == 0:
+        self.debugMode()
   def debugMode(self):
+    self.protocol._status = DbgProtocol.CONNECTED
+    self.updateStatusLine("--CONN")
     self.ui.debug_mode()
     self.running = 1
 
@@ -989,11 +1004,13 @@ class Debugger:
     if flag:
       self.recv()
 
+    self.property_get("$_SERVER['REQUEST_URI']")
     self.ui.go_srcview()
 
   def quit(self):
     self.clear()
     self.ui.normal_mode()
+    self.updateStatusLine("--CLSD")
     #vim.command('MiniBufExplorer')
 
   def stop(self):
