@@ -49,8 +49,10 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
 
     Rx                  => Read result from command to current buffer
     L                   => Locate PATTERN in current directory
-    C                   => Count the number of matches
+    C                   => Count the number of matches for last search pattern(@/)
+    C <pattern>         => Count the number of matches for pattern
     H                   => search in Help
+    I <pattern>         => lvimgrep in current buffer, then open location list
     HtmlImg             => convert image file path to <img> html tag
     Dos2Unix            => Dos2Unix
     RmAllNL             => Remove All New Line

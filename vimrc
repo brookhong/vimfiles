@@ -142,7 +142,8 @@ com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
 com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
-com! -nargs=1 C execute '%s/<args>//n'
+com! -nargs=? C call Count("<args>")
+com! -nargs=1 I call Index("<args>")
 com! -range TrailBlanks :call TrailBlanks(<line1>, <line2>)
 " }}}
 
@@ -200,14 +201,10 @@ function! MyGrep(word)
     call CheckCscopeDB()
     if g:has_cscope_db == 1
       execute 'lcs find t '.a:word
-      lw
     else
-      execute 'lgrep "\<'.a:word.'\>" *'
-      if len(getloclist(winnr())) > 0
-        exec "normal \<C-O>"
-        lw
-      endif
+      execute 'lgrep! "\<'.a:word.'\>" *'
     endif
+    lw
   endif
   let l:end = localtime()
   let g:MyGrepTime = l:end - l:start
@@ -235,6 +232,7 @@ function! LHelpGrep(word)
     lw
   endif
 endfunction
+
 function! HtmlImg()
   %s# #\ #g
   %s#^.*\(jpg\|png\|gif\)$#<img src="file://&">#
@@ -246,6 +244,17 @@ function! TrailBlanks(s, e)
   let l:maxCol = max(cols)
   exec a:s.','.a:e."g/^/let n=l:maxCol-col('$') | exec 'normal '.n.'A '"
 endfunction
+
+function! Count(pat)
+  let l:pat = (a:pat == "")? @/ : a:pat
+  execute '%s/'.l:pat.'//n'
+endfunction
+
+function! Index(pat)
+  execute 'lvimgrep /'.a:pat.'/ %'
+  lw
+endfunction
+
 " }}}
 
 " plugins for php debugger: ?XDEBUG_SESSION_START=1& {{{
