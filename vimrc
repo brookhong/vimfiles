@@ -71,7 +71,7 @@ endif
 " extended key map {{{
 let mapleader = ","
 nnoremap ^ /\c\<<C-R><C-W>\><CR>
-nnoremap <S-TAB> :call ShiftTab()<cr>
+nnoremap <S-TAB> :call ExpandTab(0)<cr>
 nnoremap <leader>d "_d
 nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
@@ -143,27 +143,34 @@ com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
 com! -nargs=? C call Count("<args>")
+com! -nargs=? Et call ExpandTab("<args>")
 com! -nargs=1 I call Index("<args>")
 com! -range TrailBlanks :call TrailBlanks(<line1>, <line2>)
 " }}}
 
 " expandtab functions {{{
-function! ExpandTab(tabWidth)
-  setl expandtab
-  execute 'setl tabstop='.a:tabWidth
-  execute 'setl shiftwidth='.a:tabWidth
-  execute 'setl softtabstop='.a:tabWidth
-  let @/="\t"
-endfunction
 let g:tabWidth = 4
-function! ShiftTab()
-  if &expandtab == 0
-    call ExpandTab(g:tabWidth)
+function! ExpandTab(tabWidth)
+  if (a:tabWidth == "") || (a:tabWidth == 0)
+    if &expandtab == 0
+      setl expandtab
+      execute 'setl tabstop='.g:tabWidth
+      execute 'setl shiftwidth='.g:tabWidth
+      execute 'setl softtabstop='.g:tabWidth
+      let @/="\t"
+    else
+      setl tabstop=8
+      setl shiftwidth=8
+      setl softtabstop=0
+      setl noexpandtab
+    endif
   else
-    setl tabstop=8
-    setl shiftwidth=8
-    setl softtabstop=0
-    setl noexpandtab
+    let g:tabWidth = a:tabWidth
+    setl expandtab
+    execute 'setl tabstop='.a:tabWidth
+    execute 'setl shiftwidth='.a:tabWidth
+    execute 'setl softtabstop='.a:tabWidth
+    let @/="\t"
   endif
 endfunction
 " }}}
