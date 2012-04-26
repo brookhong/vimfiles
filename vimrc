@@ -135,7 +135,8 @@ autocmd BufReadPost *
 
 " custom commands {{{
 com! -nargs=1 -bar H :call LHelpGrep(<q-args>)
-com! -nargs=* -complete=command -bar Rx call ReadExCmd(<q-args>)
+com! -nargs=* -complete=command -bar Ri call ReadExCmd(0, <q-args>)
+com! -nargs=* -complete=command -bar Rc call ReadExCmd(1, <q-args>)
 com! -nargs=? -bar L :call MyGrep(<q-args>)
 com! -nargs=0 -bar HtmlImg :call HtmlImg()
 com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
@@ -177,11 +178,23 @@ endfunction
 
 " Read Ex-Command output to current buffer, for example, to read output of ls, just type -- {{{
 " :Rex ls
-function! ReadExCmd(exCmd)
+function! ReadExCmd(flag,exCmd)
   redi @x
   silent exec a:exCmd
   redi END
-  exec "normal \"xp"
+  if a:flag == 1
+    let l:consoleWin = bufwinnr(">-brook's console<-")
+    if(l:consoleWin == -1)
+      silent botri 10 new >-brook's console<-
+      setlocal buftype=nofile
+      let l:consoleWin = bufwinnr(">-brook's console<-")
+    endif
+    execute l:consoleWin."wincmd w"
+    exec "normal gg\"_dG\"xp"
+    execute "normal \<c-w>p"
+  else
+    exec "normal \"xp"
+  endif
 endfunction
 " }}}
 
