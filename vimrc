@@ -16,6 +16,8 @@ set notimeout nottimeout
 set wildmenu
 set laststatus=2
 set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}%{(g:cscope_db_root==getcwd()&&g:has_cscope_db==1)?'*':''}\ %=%-10{(&expandtab)?'ExpandTab-'.&tabstop:'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
+set list
+set listchars=tab:>-,trail:-
 syntax on
 
 " set number
@@ -40,6 +42,7 @@ elseif has("mac")
   set guifont=Menlo:h14
   let g:NERDTreeDirArrows = 1
   let g:launchWebBrowser=":silent ! open /Applications/Google\\ Chrome.app "
+  let Tlist_Ctags_Cmd = '/usr/local/bin/ctags'
 elseif has("unix")
   let g:launchWebBrowser=":silent ! /opt/chrome/chrome-wrapper "
 endif
@@ -88,6 +91,8 @@ nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with P
 nnoremap <silent> <leader>nh :let @/=""<CR>
 nnoremap <silent> <leader>sh :sp <cfile><CR>
 nnoremap <silent> <leader>sv :vs <cfile><CR>
+nnoremap <silent> <leader>sl :let &list=!&list<CR>
+nnoremap <silent> <leader>t :Tlist<CR>
 nnoremap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
 nnoremap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
 nnoremap <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
@@ -292,6 +297,7 @@ Bundle 'kien/ctrlp.vim'
 Bundle 'tpope/vim-fugitive'
 Bundle 'surround.vim'
 Bundle 'brookhong/DBGPavim'
+Bundle 'taglist.vim'
 filetype plugin indent on
 
 " nerdtree setup
