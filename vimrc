@@ -15,7 +15,7 @@ set guioptions-=m "disable menu
 set notimeout nottimeout
 set wildmenu
 set laststatus=2
-set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}%{(g:cscope_db_root==getcwd()&&g:has_cscope_db==1)?'*':''}\ %=%-10{(&expandtab)?'ExpandTab-'.&tabstop:'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
+set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{(&expandtab)?'ExpandTab-'.&tabstop:'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
 set list
 set listchars=tab:>-,trail:-
 syntax on
@@ -33,6 +33,7 @@ syntax on
 let $brookvim_root = expand("<sfile>:p:h")
 let g:NERDTreeDirArrows = 0
 if has("win32")
+  let g:cscope_cmd = 'D:/tools/vim/cscope.exe'
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
   if $PATH !~ "\\c.cygwin.bin"
     let $PATH='C:\cygwin\bin;'.$PATH
@@ -100,14 +101,13 @@ nnoremap <silent> <Space>w :new<CR>
 nnoremap <silent> <Space>v :vnew<CR>
 nnoremap <silent> <Space>q :q<CR>
 nnoremap <silent> <Space>t :tabe<CR>
-nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
+"nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
 nnoremap <leader>g :call MyGrep("<C-R><C-W>")<CR>
-nnoremap <leader>l :call ToggleLocationList()<CR>
 nnoremap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
-nnoremap <silent> <leader>f :tabf <cfile><CR>
-vnoremap <silent> <leader>f y:tabf <C-R>"<CR>
+nnoremap <silent> <space>f :tabf <cfile><CR>
+vnoremap <silent> <space>f y:tabf <C-R>"<CR>
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
 imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
@@ -136,6 +136,7 @@ autocmd BufReadPost *
       \ if line("'\"") > 1 && line("'\"") <= line("$") |
       \   exe "normal! g`\"" |
       \ endif
+autocmd CmdwinEnter * map <buffer> <F5> <CR>q:
 " }}}
 
 " custom commands {{{
@@ -204,49 +205,15 @@ endfunction
 " }}}
 
 " MyGrep functions {{{
-set cscopequickfix=s-,c-,d-,i-,t-,e-
-let g:has_cscope_db = 0
-let g:cscope_db_root = ""
-function! CheckCscopeDB()
-  let l:cwd = getcwd()
-  if g:cscope_db_root != l:cwd
-    let g:cscope_db_root = l:cwd
-    let g:has_cscope_db = 0
-    cs kill -1
-    if filereadable("cscope.out")
-      cs add cscope.out
-      let g:has_cscope_db = 1
-    endif
-  endif
-endfunction
 function! MyGrep(word)
   let l:start = localtime()
   let @/='\<'.a:word.'\>'
   if strlen(a:word) > 0
-    call CheckCscopeDB()
-    if g:has_cscope_db == 1
-      execute 'lcs find t '.a:word
-    else
-      execute 'lgrep! "\<'.a:word.'\>" *'
-    endif
+    execute 'lgrep! "\<'.a:word.'\>" *'
     lw
   endif
   let l:end = localtime()
   let g:MyGrepTime = l:end - l:start
-endfunction
-function! ToggleLocationList()
-  let l:own = winnr()
-  lw
-  let l:cwn = winnr()
-  if(l:cwn == l:own)
-    if &buftype == 'quickfix'
-      lclose
-    elseif len(getloclist(winnr())) > 0
-      lclose
-    else
-      echohl WarningMsg | echo "No location list." | echohl None
-    endif
-  endif
 endfunction
 " }}}
 
@@ -282,7 +249,7 @@ endfunction
 
 " }}}
 
-" plugins for php debugger: ?XDEBUG_SESSION_START=1& {{{
+" plugins {{{
 filetype off
 let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
 call vundle#rc()
@@ -298,6 +265,7 @@ Bundle 'tpope/vim-fugitive'
 Bundle 'surround.vim'
 Bundle 'brookhong/DBGPavim'
 Bundle 'taglist.vim'
+Bundle 'vimwiki'
 filetype plugin indent on
 
 " nerdtree setup
@@ -327,14 +295,6 @@ let g:ctrlp_working_path_mode = 0
 let g:ctrlp_max_height = 25
 let g:ctrlp_custom_ignore = {
       \ 'dir':  '\.git$\|\.hg$\|\.svn$',
-      \ 'file': '\.exe$\|\.so$\|\.dll$|\.jpg$|\.png$|\.gif$|\.zip$|\.rar$|\.iso$',
+      \ 'file': '\.3dm$\|\.3g2$\|\.3gp$\|\.7z$\|\.a$\|\.a.out$\|\.accdb$\|\.ai$\|\.aif$\|\.aiff$\|\.app$\|\.arj$\|\.asf$\|\.asx$\|\.au$\|\.avi$\|\.bak$\|\.bin$\|\.bmp$\|\.bz2$\|\.cab$\|\.cer$\|\.cfm$\|\.cgi$\|\.com$\|\.cpl$\|\.csr$\|\.csv$\|\.cue$\|\.cur$\|\.dat$\|\.db$\|\.dbf$\|\.dbx$\|\.dds$\|\.deb$\|\.dem$\|\.dll$\|\.dmg$\|\.dmp$\|\.dng$\|\.doc$\|\.docx$\|\.drv$\|\.dwg$\|\.dxf$\|\.ear$\|\.efx$\|\.eps$\|\.epub$\|\.exe$\|\.fla$\|\.flv$\|\.fnt$\|\.fon$\|\.gadget$\|\.gam$\|\.gbr$\|\.ged$\|\.gif$\|\.gpx$\|\.gz$\|\.hqx$\|\.ibooks$\|\.icns$\|\.ico$\|\.ics$\|\.iff$\|\.img$\|\.indd$\|\.iso$\|\.jar$\|\.jpeg$\|\.jpg$\|\.key$\|\.keychain$\|\.kml$\|\.lnk$\|\.lz$\|\.m3u$\|\.m4a$\|\.max$\|\.mdb$\|\.mid$\|\.mim$\|\.moov$\|\.mov$\|\.movie$\|\.mp2$\|\.mp3$\|\.mp4$\|\.mpa$\|\.mpeg$\|\.mpg$\|\.msg$\|\.msi$\|\.nes$\|\.o$\|\.obj$\|\.ocx$\|\.odt$\|\.otf$\|\.pages$\|\.part$\|\.pct$\|\.pdb$\|\.pdf$\|\.pif$\|\.pkg$\|\.plugin$\|\.png$\|\.pps$\|\.ppt$\|\.pptx$\|\.prf$\|\.ps$\|\.psd$\|\.pspimage$\|\.qt$\|\.ra$\|\.rar$\|\.rm$\|\.rom$\|\.rpm$\|\.rtf$\|\.sav$\|\.scr$\|\.sdf$\|\.sea$\|\.sit$\|\.sitx$\|\.sln$\|\.smi$\|\.so$\|\.svg$\|\.swf$\|\.swp$\|\.sys$\|\.tar$\|\.tar.gz$\|\.tax2010$\|\.tga$\|\.thm$\|\.tif$\|\.tiff$\|\.tlb$\|\.tmp$\|\.toast$\|\.torrent$\|\.ttc$\|\.ttf$\|\.uu$\|\.uue$\|\.vb$\|\.vcd$\|\.vcf$\|\.vcxproj$\|\.vob$\|\.war$\|\.wav$\|\.wma$\|\.wmv$\|\.wpd$\|\.wps$\|\.xll$\|\.xlr$\|\.xls$\|\.xlsx$\|\.xpi$\|\.yuv$\|\.Z$\|\.zip$\|\.zipx$\|\.lib$\|\.res$\|\.rc$\|\.out$',
       \ }
-
-let g:miniBufExplMapWindowNavVim = 1 
-let g:miniBufExplMapWindowNavArrows = 1 
-let g:miniBufExplMapCTabSwitchBufs = 1 
-let g:miniBufExplModSelTarget = 1
-" don't show MiniBufExplorer for conflict with fugitive
-let g:miniBufExplorerMoreThanOne=99
-
 " }}}
