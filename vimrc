@@ -1,4 +1,5 @@
 " vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab foldmethod=marker
+" ff=unix
 
 " general settings {{{
 set nocompatible
@@ -15,9 +16,10 @@ set guioptions-=m "disable menu
 set notimeout nottimeout
 set wildmenu
 set laststatus=2
-set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{(&expandtab)?'ExpandTab-'.&tabstop:'NoExpandTab'}\ %=%-10.(%l,%c%V%)\ %P
+set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{(&expandtab)?'ET'.&tabstop:'TAB'}\ %=%-10.(%l,%c%V%)\ %P
 set list
 set listchars=tab:>-,trail:-
+set fileformat=unix
 syntax on
 
 " set number
@@ -97,11 +99,11 @@ nnoremap <silent> <leader>t :Tlist<CR>
 nnoremap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
 nnoremap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
 nnoremap <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
-nnoremap <silent> <Space>w :new<CR>
-nnoremap <silent> <Space>v :vnew<CR>
-nnoremap <silent> <Space>q :q<CR>
-nnoremap <silent> <Space>t :tabe<CR>
-"nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
+nnoremap <silent> <space>w :new<CR>
+nnoremap <silent> <space>v :vnew<CR>
+nnoremap <silent> <space>q :q<CR>
+nnoremap <silent> <space>t :tabe<CR>
+nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
 nnoremap <leader>g :call MyGrep("<C-R><C-W>")<CR>
@@ -143,6 +145,7 @@ autocmd CmdwinEnter * map <buffer> <F5> <CR>q:
 com! -nargs=1 -bar H :call LHelpGrep(<q-args>)
 com! -nargs=* -complete=command -bar Ri call ReadExCmd(0, <q-args>)
 com! -nargs=* -complete=command -bar Rc call ReadExCmd(1, <q-args>)
+com! -nargs=* -complete=file -bar Vsd call Vsd("<args>")
 com! -nargs=? -bar L :call MyGrep(<q-args>)
 com! -nargs=0 -bar HtmlImg :call HtmlImg()
 com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
@@ -150,7 +153,7 @@ com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
 com! -nargs=? C call Count("<args>")
-com! -nargs=? Et call ExpandTab("<args>")
+com! -nargs=? ET call ExpandTab("<args>")
 com! -nargs=1 I call Index("<args>")
 com! -range TrailBlanks :call TrailBlanks(<line1>, <line2>)
 " }}}
@@ -247,6 +250,10 @@ function! Index(pat)
   lw
 endfunction
 
+function! Vsd(fn)
+  exec 'diffsplit '.a:fn
+  exec "normal \<c-w>L"
+endfunction
 " }}}
 
 " plugins {{{
@@ -264,8 +271,8 @@ Bundle 'kien/ctrlp.vim'
 Bundle 'tpope/vim-fugitive'
 Bundle 'surround.vim'
 Bundle 'brookhong/DBGPavim'
+Bundle 'brookhong/cscope.vim'
 Bundle 'taglist.vim'
-Bundle 'vimwiki'
 filetype plugin indent on
 
 " nerdtree setup
@@ -297,4 +304,20 @@ let g:ctrlp_custom_ignore = {
       \ 'dir':  '\.git$\|\.hg$\|\.svn$',
       \ 'file': '\.3dm$\|\.3g2$\|\.3gp$\|\.7z$\|\.a$\|\.a.out$\|\.accdb$\|\.ai$\|\.aif$\|\.aiff$\|\.app$\|\.arj$\|\.asf$\|\.asx$\|\.au$\|\.avi$\|\.bak$\|\.bin$\|\.bmp$\|\.bz2$\|\.cab$\|\.cer$\|\.cfm$\|\.cgi$\|\.com$\|\.cpl$\|\.csr$\|\.csv$\|\.cue$\|\.cur$\|\.dat$\|\.db$\|\.dbf$\|\.dbx$\|\.dds$\|\.deb$\|\.dem$\|\.dll$\|\.dmg$\|\.dmp$\|\.dng$\|\.doc$\|\.docx$\|\.drv$\|\.dwg$\|\.dxf$\|\.ear$\|\.efx$\|\.eps$\|\.epub$\|\.exe$\|\.fla$\|\.flv$\|\.fnt$\|\.fon$\|\.gadget$\|\.gam$\|\.gbr$\|\.ged$\|\.gif$\|\.gpx$\|\.gz$\|\.hqx$\|\.ibooks$\|\.icns$\|\.ico$\|\.ics$\|\.iff$\|\.img$\|\.indd$\|\.iso$\|\.jar$\|\.jpeg$\|\.jpg$\|\.key$\|\.keychain$\|\.kml$\|\.lnk$\|\.lz$\|\.m3u$\|\.m4a$\|\.max$\|\.mdb$\|\.mid$\|\.mim$\|\.moov$\|\.mov$\|\.movie$\|\.mp2$\|\.mp3$\|\.mp4$\|\.mpa$\|\.mpeg$\|\.mpg$\|\.msg$\|\.msi$\|\.nes$\|\.o$\|\.obj$\|\.ocx$\|\.odt$\|\.otf$\|\.pages$\|\.part$\|\.pct$\|\.pdb$\|\.pdf$\|\.pif$\|\.pkg$\|\.plugin$\|\.png$\|\.pps$\|\.ppt$\|\.pptx$\|\.prf$\|\.ps$\|\.psd$\|\.pspimage$\|\.qt$\|\.ra$\|\.rar$\|\.rm$\|\.rom$\|\.rpm$\|\.rtf$\|\.sav$\|\.scr$\|\.sdf$\|\.sea$\|\.sit$\|\.sitx$\|\.sln$\|\.smi$\|\.so$\|\.svg$\|\.swf$\|\.swp$\|\.sys$\|\.tar$\|\.tar.gz$\|\.tax2010$\|\.tga$\|\.thm$\|\.tif$\|\.tiff$\|\.tlb$\|\.tmp$\|\.toast$\|\.torrent$\|\.ttc$\|\.ttf$\|\.uu$\|\.uue$\|\.vb$\|\.vcd$\|\.vcf$\|\.vcxproj$\|\.vob$\|\.war$\|\.wav$\|\.wma$\|\.wmv$\|\.wpd$\|\.wps$\|\.xll$\|\.xlr$\|\.xls$\|\.xlsx$\|\.xpi$\|\.yuv$\|\.Z$\|\.zip$\|\.zipx$\|\.lib$\|\.res$\|\.rc$\|\.out$',
       \ }
+" }}}
+"
+" python utilities {{{
+if has("python")
+  python import cgi
+  python import HTMLParser
+  python import urllib
+  python import base64
+  python htmlparser = HTMLParser.HTMLParser()
+  com! -nargs=1 -bar CgiEscape python print cgi.escape("<args>", True)
+  com! -nargs=1 -bar CgiUnescape python print htmlparser.unescape("<args>")
+  com! -nargs=1 -bar UrlEncode python print urllib.quote_plus("<args>")
+  com! -nargs=1 -bar UrlDecode python print urllib.unquote_plus("<args>")
+  com! -nargs=1 -bar Base64Encode python print base64.encodestring("<args>")
+  com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
+endif
 " }}}
