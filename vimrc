@@ -103,7 +103,7 @@ nnoremap <silent> <space>w :new<CR>
 nnoremap <silent> <space>v :vnew<CR>
 nnoremap <silent> <space>q :q<CR>
 nnoremap <silent> <space>t :tabe<CR>
-nnoremap <leader>wt :execute g:launchWebBrowser."http://dict.baidu.com/s?wd=".expand("<cword>")<CR>
+nnoremap <leader>wt :execute 'Translate '.expand("<cword>")<CR>
 nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
 nnoremap <leader>g :call MyGrep("<C-R><C-W>")<CR>
@@ -154,7 +154,7 @@ com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
 com! -nargs=? C call Count("<args>")
 com! -nargs=? ET call ExpandTab("<args>")
-com! -nargs=1 I call Index("<args>")
+com! -nargs=? I call Index("<args>")
 com! -range TrailBlanks :call TrailBlanks(<line1>, <line2>)
 " }}}
 
@@ -246,7 +246,8 @@ function! Count(pat)
 endfunction
 
 function! Index(pat)
-  execute 'lvimgrep /'.a:pat.'/ %'
+  let l:pat = (a:pat == "")? @/ : a:pat
+  execute 'lvimgrep /'.l:pat.'/ %'
   lw
 endfunction
 
@@ -273,6 +274,8 @@ Bundle 'surround.vim'
 Bundle 'brookhong/DBGPavim'
 Bundle 'brookhong/cscope.vim'
 Bundle 'taglist.vim'
+Bundle 'matchit.zip'
+Bundle 'maksimr/vim-translator.git'
 filetype plugin indent on
 
 " nerdtree setup
@@ -321,3 +324,5 @@ if has("python")
   com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
 endif
 " }}}
+
+let g:goog_user_conf = { 'langpair': 'en|zh', 'v_key': 'T' }
