@@ -16,7 +16,7 @@ set guioptions-=m "disable menu
 set notimeout nottimeout
 set wildmenu
 set laststatus=2
-set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{(&expandtab)?'ET'.&tabstop:'TAB'}\ %=%-10.(%l,%c%V%)\ %P
+set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{bufnr('%').((&expandtab)?'-ET'.&tabstop:'-TAB')}\ %=%-10.(%l,%c%V%)\ %P
 set list
 set listchars=tab:>-,trail:-
 set fileformat=unix
@@ -79,6 +79,7 @@ let mapleader = ","
 nnoremap ^ /\c\<<C-R><C-W>\><CR>
 nnoremap <S-TAB> :call ExpandTab(0)<cr>
 nnoremap <leader>d "_d
+nnoremap Y y$
 nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nnoremap <silent> <leader>qa :qall!<cr>
@@ -117,6 +118,7 @@ imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>
 
 " autocmds {{{
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
+autocmd BufRead,BufNewFile *.json set filetype=javascript
 autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
 if has('python') || has('python3')
   autocmd FileType python     nnoremap <buffer> <leader>r :pyfile %<CR>
@@ -125,6 +127,7 @@ else
 endif
 autocmd FileType ruby       nnoremap <buffer> <leader>r :!ruby %<CR>
 autocmd FileType perl       nnoremap <buffer> <leader>r :!perl %<CR>
+autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrowser.expand("%")<CR>
 autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
 autocmd FileType vim        setlocal keywordprg=:help
 autocmd FileType markdown   nnoremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
