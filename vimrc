@@ -78,6 +78,7 @@ endif
 let mapleader = ","
 nnoremap ^ /\c\<<C-R><C-W>\><CR>
 nnoremap <S-TAB> :call ExpandTab(0)<cr>
+inoremap <S-TAB> <C-O>:call ExpandTab(0)<cr>
 nnoremap <leader>d "_d
 nnoremap Y y$
 nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
@@ -120,11 +121,7 @@ imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>
 autocmd BufRead,BufNewFile *.as set filetype=actionscript
 autocmd BufRead,BufNewFile *.json set filetype=javascript
 autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
-if has('python') || has('python3')
-  autocmd FileType python     nnoremap <buffer> <leader>r :pyfile %<CR>
-else
-  autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
-endif
+autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
 autocmd FileType ruby       nnoremap <buffer> <leader>r :!ruby %<CR>
 autocmd FileType perl       nnoremap <buffer> <leader>r :!perl %<CR>
 autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrowser.expand("%")<CR>
@@ -132,6 +129,7 @@ autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."htt
 autocmd FileType vim        setlocal keywordprg=:help
 autocmd FileType markdown   nnoremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
 autocmd FileType markdown,yaml   call ExpandTab(2)
+autocmd BufReadPost * if &buftype=='quickfix' | setlocal statusline=%q%{(exists('w:quickfix_title'))?'-'.(w:quickfix_title):''}\ %=%-10.(%l,%c%V%) | endif
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
 " (happens when dropping a file on gvim).
@@ -155,6 +153,8 @@ com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
 com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
+com! -nargs=0 -bar FmtXML :%s/>\s*</>\r</g|set ft=xml|normal ggVG=
+com! -nargs=0 -bar Df :diffthis|exe "normal \<C-W>w"|diffthis
 com! -nargs=? C call Count("<args>")
 com! -nargs=? ET call ExpandTab("<args>")
 com! -nargs=? I call Index("<args>")
