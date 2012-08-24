@@ -57,7 +57,6 @@ let &runtimepath = $brookvim_root.",".&runtimepath
 if has("gui")
   source $VIMRUNTIME/mswin.vim
   set clipboard=unnamed
-  nnoremap <S-LeftMouse> <LeftMouse>:call MyGrep(expand("<cword>"))<CR>
 
   let s:schemeList=["desert", "darkspectrum","desert256","moria"]
   let s:random=substitute(localtime(),'\d','&+','g')
@@ -77,8 +76,8 @@ endif
 " extended key map {{{
 let mapleader = ","
 nnoremap ^ /\c\<<C-R><C-W>\><CR>
-nnoremap <S-TAB> :call ExpandTab(0)<cr>
-inoremap <S-TAB> <C-O>:call ExpandTab(0)<cr>
+nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
+inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
 nnoremap <leader>d "_d
 nnoremap Y y$
 nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
@@ -105,11 +104,13 @@ nnoremap <silent> <space>w :new<CR>
 nnoremap <silent> <space>v :vnew<CR>
 nnoremap <silent> <space>q :q<CR>
 nnoremap <silent> <space>t :tabe<CR>
+nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir /mnt/d/tools/sdcv/stardict-oxford-gb-formated-2.4.2/ ".expand("<cword>"))<CR>
+nnoremap <silent> <space>, :call <SID>CloseConsole()<CR>
 nnoremap <leader>wt :execute 'Translate '.expand("<cword>")<CR>
 nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
-nnoremap <leader>g :call MyGrep("<C-R><C-W>")<CR>
-nnoremap <silent> <leader>e :call ToggleNERDTree(getcwd())<CR>
+nnoremap <leader>g :call <SID>MyGrep("<C-R><C-W>")<CR>
+nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <silent> <space>f :tabf <cfile><CR>
 vnoremap <silent> <space>f y:tabf <C-R>"<CR>
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
@@ -128,7 +129,7 @@ autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrow
 autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
 autocmd FileType vim        setlocal keywordprg=:help
 autocmd FileType markdown   nnoremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
-autocmd FileType markdown,yaml   call ExpandTab(2)
+autocmd FileType markdown,yaml   call <SID>ExpandTab(2)
 autocmd BufReadPost * if &buftype=='quickfix' | setlocal statusline=%q%{(exists('w:quickfix_title'))?'-'.(w:quickfix_title):''}\ %=%-10.(%l,%c%V%) | endif
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
@@ -140,30 +141,32 @@ autocmd BufReadPost *
       \   exe "normal! g`\"" |
       \ endif
 autocmd CmdwinEnter * map <buffer> <F5> <CR>q:
+
+autocmd BufEnter * if &buftype=="nofile" && winbufnr(2) == -1 && bufname('%') == ">-brook's console<-" | quit | endif
 " }}}
 
 " custom commands {{{
-com! -nargs=1 -bar H :call LHelpGrep(<q-args>)
-com! -nargs=* -complete=command -bar Ri call ReadExCmd(0, <q-args>)
-com! -nargs=* -complete=command -bar Rc call ReadExCmd(1, <q-args>)
-com! -nargs=* -complete=file -bar Vsd call Vsd("<args>")
-com! -nargs=? -bar L :call MyGrep(<q-args>)
-com! -nargs=0 -bar HtmlImg :call HtmlImg()
+com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
+com! -nargs=* -complete=command -bar Ri call <SID>ReadExCmd(0, "botri 10", <q-args>)
+com! -nargs=* -complete=command -bar Rc call <SID>ReadExCmd(1, "botri 10", <q-args>)
+com! -nargs=* -complete=file -bar Vsd call <SID>Vsd("<args>")
+com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
+com! -nargs=0 -bar HtmlImg :call <SID>HtmlImg()
 com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
 com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
-com! -nargs=0 -bar FmtXML :%s/>\s*</>\r</g|set ft=xml|normal ggVG=
+com! -nargs=0 -bar FmtXML :%s/>\s*</>\r</ge|set ft=xml|normal ggVG=
 com! -nargs=0 -bar Df :diffthis|exe "normal \<C-W>w"|diffthis
-com! -nargs=? C call Count("<args>")
-com! -nargs=? ET call ExpandTab("<args>")
-com! -nargs=? I call Index("<args>")
-com! -range TrailBlanks :call TrailBlanks(<line1>, <line2>)
+com! -nargs=? C call <SID>Count("<args>")
+com! -nargs=? ET call <SID>ExpandTab("<args>")
+com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
+com! -range TrailBlanks :call <SID>TrailBlanks(<line1>, <line2>)
 " }}}
 
 " expandtab functions {{{
 let g:tabWidth = 4
-function! ExpandTab(tabWidth)
+function! s:ExpandTab(tabWidth)
   if (a:tabWidth == "") || (a:tabWidth == 0)
     if &expandtab == 0
       setl expandtab
@@ -190,28 +193,36 @@ endfunction
 
 " Read Ex-Command output to current buffer, for example, to read output of ls, just type -- {{{
 " :Rex ls
-function! ReadExCmd(flag,exCmd)
+function! s:ReadExCmd(flag,winOp,exCmd)
   redi @x
   silent exec a:exCmd
   redi END
   if a:flag == 1
     let l:consoleWin = bufwinnr(">-brook's console<-")
     if(l:consoleWin == -1)
-      silent botri 10 new >-brook's console<-
+      execute "silent ".a:winOp." new >-brook's console<-"
       setlocal buftype=nofile
       let l:consoleWin = bufwinnr(">-brook's console<-")
     endif
     execute l:consoleWin."wincmd w"
-    exec "normal gg\"_dG\"xp"
+    exec "normal gg\"_dG\"xp" | %s#\r## | normal 50%z.
     execute "normal \<c-w>p"
   else
     exec "normal \"xp"
   endif
 endfunction
+
+function! s:CloseConsole()
+  let l:consoleWin = bufwinnr(">-brook's console<-")
+  if(l:consoleWin != -1)
+    execute l:consoleWin."wincmd w"
+    quit
+  endif
+endfunction
 " }}}
 
 " MyGrep functions {{{
-function! MyGrep(word)
+function! s:MyGrep(word)
   let l:start = localtime()
   let @/='\<'.a:word.'\>'
   if strlen(a:word) > 0
@@ -224,37 +235,35 @@ endfunction
 " }}}
 
 " misc functions {{{
-function! LHelpGrep(word)
+function! s:LHelpGrep(word)
   if strlen(a:word) > 0
     execute 'lhelpgrep '.a:word
     lw
   endif
 endfunction
 
-function! HtmlImg()
+function! s:HtmlImg()
   %s# #\ #g
   %s#^.*\(jpg\|png\|gif\)$#<img src="file://&">#
 endfunction
 
-function! TrailBlanks(s, e)
+function! s:TrailBlanks(s, e)
   let l:cols = []
   exec a:s.','.a:e."g/^/call add(cols, col('$'))"
   let l:maxCol = max(cols)
   exec a:s.','.a:e."g/^/let n=l:maxCol-col('$') | exec 'normal '.n.'A '"
 endfunction
 
-function! Count(pat)
+function! s:Count(pat)
   let l:pat = (a:pat == "")? @/ : a:pat
-  execute '%s/'.l:pat.'//n'
+  try
+    execute '%s/'.l:pat.'//n'
+  catch
+    echo "0 match on 0 line"
+  endtry
 endfunction
 
-function! Index(pat)
-  let l:pat = (a:pat == "")? @/ : a:pat
-  execute 'lvimgrep /'.l:pat.'/ %'
-  lw
-endfunction
-
-function! Vsd(fn)
+function! s:Vsd(fn)
   exec 'diffsplit '.a:fn
   exec "normal \<c-w>L"
 endfunction
@@ -291,7 +300,7 @@ function! s:NERDTreeOpen(dir)
   endif
   let t:NERDTreeRoot = a:dir
 endfunction
-function! ToggleNERDTree(dir)
+function! s:ToggleNERDTree(dir)
   if exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1 && t:NERDTreeRoot == a:dir
     NERDTreeClose
   else
