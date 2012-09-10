@@ -104,7 +104,7 @@ nnoremap <silent> <space>w :new<CR>
 nnoremap <silent> <space>v :vnew<CR>
 nnoremap <silent> <space>q :q<CR>
 nnoremap <silent> <space>t :tabe<CR>
-nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir /mnt/d/tools/sdcv/stardict-oxford-gb-formated-2.4.2/ ".expand("<cword>"))<CR>
+nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir /mnt/d/tools/sdcv/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
 nnoremap <silent> <space>, :call <SID>CloseConsole()<CR>
 nnoremap <leader>wt :execute 'Translate '.expand("<cword>")<CR>
 nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
@@ -193,22 +193,32 @@ endfunction
 
 " Read Ex-Command output to current buffer, for example, to read output of ls, just type -- {{{
 " :Rex ls
-function! s:ReadExCmd(flag,winOp,exCmd)
-  redi @x
-  silent exec a:exCmd
-  redi END
-  if a:flag == 1
+function! s:FocusMyConsole(winOp)
+  let l:consoleWin = bufwinnr(">-brook's console<-")
+  if(l:consoleWin == -1)
+    execute "silent ".a:winOp." new >-brook's console<-"
+    setlocal buftype=nofile
     let l:consoleWin = bufwinnr(">-brook's console<-")
-    if(l:consoleWin == -1)
-      execute "silent ".a:winOp." new >-brook's console<-"
-      setlocal buftype=nofile
-      let l:consoleWin = bufwinnr(">-brook's console<-")
-    endif
-    execute l:consoleWin."wincmd w"
-    exec "normal gg\"_dG\"xp" | %s#\r## | normal 50%z.
-    execute "normal \<c-w>p"
+  endif
+  execute l:consoleWin."wincmd w"
+endfunction
+
+function! s:ReadExCmd(flag,winOp,exCmd)
+  if a:exCmd[0] == "!"
+    let l:shCmd = strpart(a:exCmd,1)
+    let l:result = split(system(l:shCmd),"\\n")
   else
-    exec "normal \"xp"
+    redi @x
+    silent exec a:exCmd
+    redi END
+  endif
+  if a:flag == 1
+    call <SID>FocusMyConsole(a:winOp)
+    exec "normal gg\"_dG"
+    if a:exCmd[0] == "!" | call append(0, l:result) | else | exec "normal \"xp" | endif
+    execute "normal gg\<c-w>p"
+  else
+    if a:exCmd[0] == "!" | call append(0, l:result) | else | exec "normal \"xp" | endif
   endif
 endfunction
 
