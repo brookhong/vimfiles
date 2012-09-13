@@ -150,6 +150,8 @@ com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
 com! -nargs=* -complete=command -bar Ri call <SID>ReadExCmd(0, "botri 10", <q-args>)
 com! -nargs=* -complete=command -bar Rc call <SID>ReadExCmd(1, "botri 10", <q-args>)
 com! -nargs=* -complete=file -bar Vsd call <SID>Vsd("<args>")
+com! -nargs=0 -bar D2h call <SID>D2h()
+com! -nargs=0 -bar H2d call <SID>H2d()
 com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
 com! -nargs=0 -bar HtmlImg :call <SID>HtmlImg()
 com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
@@ -276,6 +278,25 @@ endfunction
 function! s:Vsd(fn)
   exec 'diffsplit '.a:fn
   exec "normal \<c-w>L"
+endfunction
+
+function! s:D2h()
+  let l:digits = split(getline('.'),' ')
+  let l:hexCode = ""
+  for i in l:digits
+    let l:hexCode .= printf("%0x ",i)
+  endfor
+  call append("$", l:hexCode)
+endfunction
+
+function! s:H2d()
+  let l:digits = split(getline('.'),' ')
+  let l:hexCode = ""
+  for i in l:digits
+    exec 'let l:hexCode .= 0x'.i
+    let l:hexCode .= " "
+  endfor
+  call append("$", l:hexCode)
 endfunction
 " }}}
 
