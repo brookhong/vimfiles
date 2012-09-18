@@ -13,16 +13,19 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
 ## Key Mappings
 
     ^                   => search word under cursor with ignorecase on
+    Y                   => y$
     <C-C>               => calculate expession at current line, for example, at a new line, input (3+4)*2=<C-C>
     <F5>                => insert date time like 22:35 2012/03/21
-    <leader>e           => ToggleNERDTree
+    <S-TAB>             => toggle expandtab
+    <leader>,           => translate word uner cursor with sdcv
     <leader>d           => delete to black hole register "_
-    <leader>f           => tabf <cfile>
+    <leader>e           => ToggleNERDTree
     <leader>g           => Grep word under cursor
     <leader>i           => search input string with Ignorecase on
     <leader>j           => paste from registers interactively
     <leader>l           => toggle Location list
     <leader>m           => go to Mark interactively
+    <leader>r           => run current file
     <leader>nh          => clear(No) search Highlight
     <leader>qa          => Quit All
     <leader>qb          => Quick Buffer by CtrlPBuffer
@@ -38,23 +41,37 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
     <leader>ve          => Vimrc to be Edit
     <leader>vs          => Vimrc to be Source
     <leader>wb          => search from Web by Baidu
+    <leader>wl          => Web Launcher with URL under cursor
     <leader>wt          => search from Web by baidu Translation
     <leader>ya          => Yank All lines with PATTERN to register Z
+    <Space>,            => close brook's console window
+    <Space>f           => tabf <cfile>
     <Space>q            => close current window
     <Space>t            => new Tab
+    <Space>v            => new window Vertically
     <Space>w            => new Window
-    <S-TAB>             => toggle expandtab
 
 ## Extened Commands
 
-    Rx                  => Read result from command to current buffer
-    L                   => Locate PATTERN in current directory
     C                   => Count the number of matches for last search pattern(@/)
     C <pattern>         => Count the number of matches for pattern
-    H                   => search in Help
-    I <pattern>         => lvimgrep in current buffer, then open location list
-    HtmlImg             => convert image file path to <img> html tag
+    H <pattern>         => search in Help
+    I <pattern>         => include-search(:il) in current buffer, then open location list
+    L                   => Locate PATTERN in current directory
+    S <phrase>          => search \<<phrase>\>
+    Df                  => diff two vertically opened files
+    Et <number>         => expandtab with tabstop as <number>
+    Gd                  => exec ':g/'.@/.'/d'
+    Rc <excommands>     => Read result from command to brook's console window
+    Ri <excommands>     => Read result from command to current buffer
+    Vd                  => exec ':v/'.@/.'/d'
+    D2h                 => convert current line from Decimal to Hexical
+    H2d                 => convert current line Hexical to Decimal
+    Vsd <file>          => Vertically split open <file>, then diff it with current file
     Dos2Unix            => Dos2Unix
+    FmtXML              => FmtXML
+    HtmlImg             => convert image file path to <img> html tag
     RmAllNL             => Remove All New Line
     RmDupLine           => Remove Duplicate Lines
-    ClearEmptyLine      => Clear Empty Line
+    RmEmptyLine         => Clear Empty Line
+    TrailBlanks         => padding all visual selected lines with trailing blanks

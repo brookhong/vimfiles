@@ -76,45 +76,45 @@ endif
 " extended key map {{{
 let mapleader = ","
 nnoremap ^ /\c\<<C-R><C-W>\><CR>
+nnoremap Y y$
+inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
+inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
-nnoremap <leader>d "_d
-nnoremap Y y$
-nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
-nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
+nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir /mnt/d/tools/sdcv/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
+nnoremap <silent> <leader>d "_d
+nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
+nnoremap <silent> <leader>g :call <SID>MyGrep("<C-R><C-W>")<CR>
+nnoremap <silent> <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
+nnoremap <silent> <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
+nnoremap <silent> <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
+nnoremap <silent> <leader>t :Tlist<CR>
+nnoremap <silent> <leader>nh :let @/=""<CR>
 nnoremap <silent> <leader>qa :qall!<cr>
 nnoremap <silent> <leader>qb :CtrlPBuffer<CR>
-nnoremap <silent> <leader>qf :CtrlPMRU<CR>
-nnoremap <silent> <leader>qx :q!<CR>
-nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
 nnoremap <silent> <leader>qc :e!<Esc>ggdG<CR>
 nnoremap <silent> <leader>qd :Gdiff<CR>
-nnoremap <silent> <leader>qs :mksession! $HOME/_session.vim<Bar>qall!<CR>
+nnoremap <silent> <leader>qf :CtrlPMRU<CR>
+nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
 nnoremap <silent> <leader>ql :source $HOME/_session.vim<CR>
-nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"ZY\<CR\>"<CR>
-nnoremap <silent> <leader>nh :let @/=""<CR>
+nnoremap <silent> <leader>qs :mksession! $HOME/_session.vim<Bar>qall!<CR>
+nnoremap <silent> <leader>qx :q!<CR>
 nnoremap <silent> <leader>sh :sp <cfile><CR>
-nnoremap <silent> <leader>sv :vs <cfile><CR>
 nnoremap <silent> <leader>sl :let &list=!&list<CR>
-nnoremap <silent> <leader>t :Tlist<CR>
-nnoremap <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
-nnoremap <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
-nnoremap <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
-nnoremap <silent> <space>w :new<CR>
-nnoremap <silent> <space>v :vnew<CR>
-nnoremap <silent> <space>q :q<CR>
-nnoremap <silent> <space>t :tabe<CR>
-nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir /mnt/d/tools/sdcv/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
+nnoremap <silent> <leader>sv :vs <cfile><CR>
+nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
+nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
+nnoremap <silent> <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
+nnoremap <silent> <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
+nnoremap <silent> <leader>wt :execute 'Translate '.expand("<cword>")<CR>
+nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"ZY\<CR\>"<CR>
 nnoremap <silent> <space>, :call <SID>CloseConsole()<CR>
-nnoremap <leader>wt :execute 'Translate '.expand("<cword>")<CR>
-nnoremap <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
-nnoremap <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
-nnoremap <leader>g :call <SID>MyGrep("<C-R><C-W>")<CR>
-nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <silent> <space>f :tabf <cfile><CR>
 vnoremap <silent> <space>f y:tabf <C-R>"<CR>
-inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
-inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
+nnoremap <silent> <space>q :q<CR>
+nnoremap <silent> <space>t :tabe<CR>
+nnoremap <silent> <space>v :vnew<CR>
+nnoremap <silent> <space>w :new<CR>
 imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
 " }}}
 
@@ -146,23 +146,26 @@ autocmd BufEnter * if &buftype=="nofile" && winbufnr(2) == -1 && bufname('%') ==
 " }}}
 
 " custom commands {{{
+com! -nargs=? C call <SID>Count("<args>")
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
-com! -nargs=* -complete=command -bar Ri call <SID>ReadExCmd(0, "botri 10", <q-args>)
+com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
+com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
+com! -nargs=1 S let @/='\<'.<f-args>.'\>'
+com! -nargs=0 -bar Df :diffthis|exe "normal \<C-W>w"|diffthis
+com! -nargs=? Et call <SID>ExpandTab("<args>")
+com! -nargs=0 Gd exec ':g/'.@/.'/d'
 com! -nargs=* -complete=command -bar Rc call <SID>ReadExCmd(1, "botri 10", <q-args>)
-com! -nargs=* -complete=file -bar Vsd call <SID>Vsd("<args>")
+com! -nargs=* -complete=command -bar Ri call <SID>ReadExCmd(0, "botri 10", <q-args>)
+com! -nargs=0 Vd exec ':v/'.@/.'/d'
 com! -nargs=0 -bar D2h call <SID>D2h()
 com! -nargs=0 -bar H2d call <SID>H2d()
-com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
-com! -nargs=0 -bar HtmlImg :call <SID>HtmlImg()
+com! -nargs=* -complete=file -bar Vsd call <SID>Vsd("<args>")
 com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
+com! -nargs=0 -bar FmtXML :%s/>\s*</>\r</ge|set ft=xml|normal ggVG=
+com! -nargs=0 -bar HtmlImg :call <SID>HtmlImg()
 com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
-com! -nargs=0 -bar ClearEmptyLine :g/^\s*$/d
-com! -nargs=0 -bar FmtXML :%s/>\s*</>\r</ge|set ft=xml|normal ggVG=
-com! -nargs=0 -bar Df :diffthis|exe "normal \<C-W>w"|diffthis
-com! -nargs=? C call <SID>Count("<args>")
-com! -nargs=? ET call <SID>ExpandTab("<args>")
-com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
+com! -nargs=0 -bar RmEmptyLine :g/^\s*$/d
 com! -range TrailBlanks :call <SID>TrailBlanks(<line1>, <line2>)
 " }}}
 
