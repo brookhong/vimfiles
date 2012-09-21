@@ -34,7 +34,9 @@ syntax on
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p:h")
 let g:NERDTreeDirArrows = 0
+let g:win_prefix = ''
 if has("win32")
+  let g:win_prefix = 'D:'
   let g:cscope_cmd = 'D:/tools/vim/cscope.exe'
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
   if $PATH !~ "\\c.cygwin.bin"
@@ -81,7 +83,8 @@ inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
-nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir /mnt/d/tools/sdcv/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
+nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir ".g:win_prefix."/works/scriptbundle/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
+nnoremap <silent> <leader>a :exec "redi!  >>".g:win_prefix."/works/scriptbundle/vocabulary.lst \|echo expand('<cword>') \| redi END"<CR>
 nnoremap <silent> <leader>d "_d
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <silent> <leader>g :call <SID>MyGrep("<C-R><C-W>")<CR>
