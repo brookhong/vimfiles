@@ -45,7 +45,7 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
     <leader>wt          => search from Web by baidu Translation
     <leader>ya          => Yank All lines with PATTERN to register Z
     <Space>,            => close brook's console window
-    <Space>f           => tabf <cfile>
+    <Space>f            => tabf <cfile>
     <Space>q            => close current window
     <Space>t            => new Tab
     <Space>v            => new window Vertically
@@ -75,3 +75,9 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
     RmDupLine           => Remove Duplicate Lines
     RmEmptyLine         => Clear Empty Line
     TrailBlanks         => padding all visual selected lines with trailing blanks
+
+## Most useful keystrokes
+### Insert mode
+    ctrl+r              => help <C-R>
+### Normal mode
+    vat                 => help text-objects
