@@ -86,6 +86,7 @@ nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
 nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir ".g:win_prefix."/works/scriptbundle/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
 nnoremap <silent> <leader>a :exec "redi!  >>".g:win_prefix."/works/scriptbundle/vocabulary.lst \|echo expand('<cword>') \| redi END"<CR>
+nnoremap <silent> <leader>b :%!bash<CR>
 nnoremap <silent> <leader>d "_d
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <silent> <leader>g :call <SID>MyGrep("<C-R><C-W>")<CR>
@@ -132,8 +133,8 @@ autocmd FileType perl       nnoremap <buffer> <leader>r :!perl %<CR>
 autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrowser.expand("%")<CR>
 autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
 autocmd FileType vim        setlocal keywordprg=:help
-autocmd FileType markdown   nnoremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
-autocmd FileType markdown,yaml   call <SID>ExpandTab(2)
+autocmd FileType markdown   call <SID>MyMarkDown()
+autocmd FileType yaml       call <SID>ExpandTab(2)
 autocmd BufReadPost * if &buftype=='quickfix' | setlocal statusline=%q%{(exists('w:quickfix_title'))?'-'.(w:quickfix_title):''}\ %=%-10.(%l,%c%V%) | endif
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
@@ -151,15 +152,17 @@ autocmd BufEnter * if &buftype=="nofile" && winbufnr(2) == -1 && bufname('%') ==
 
 " custom commands {{{
 com! -nargs=? C call <SID>Count("<args>")
+com! -nargs=? CC cd %:h
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
 com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
-com! -nargs=1 S let @/='\<'.<f-args>.'\>'
+com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
 com! -nargs=0 -bar Df :diffthis|exe "normal \<C-W>w"|diffthis
 com! -nargs=? Et call <SID>ExpandTab("<args>")
 com! -nargs=0 Gd exec ':g/'.@/.'/d'
 com! -nargs=* -complete=command -bar Rc call <SID>ReadExCmd(1, "botri 10", <q-args>)
 com! -nargs=* -complete=command -bar Ri call <SID>ReadExCmd(0, "botri 10", <q-args>)
+com! -nargs=0 -range Ucfirst let a=@/ | s/\(\a\)\(\a*\)/\1\L\2/g | let @/=a
 com! -nargs=0 Vd exec ':v/'.@/.'/d'
 com! -nargs=0 -bar D2h call <SID>D2h()
 com! -nargs=0 -bar H2d call <SID>H2d()
@@ -171,6 +174,7 @@ com! -nargs=* -range Number :call <SID>Number(<line1>,<line2>,<f-args>)
 com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar RmEmptyLine :g/^\s*$/d
+com! -nargs=0 -bar RmTrailingBlanks :%s/\s\+$//g
 com! -range TrailBlanks :call <SID>TrailBlanks(<line1>, <line2>)
 " }}}
 
@@ -311,6 +315,14 @@ function! s:Number(line1, line2, start, suffix)
   let l:a = @/
   exec a:line1.','a:line2.'s/^/\=line(".")-'.a:line1.'+'.a:start.'."'.a:suffix.'"/'
   let @/ = l:a
+endfunction
+
+function! s:MyMarkDown()
+  nnoremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
+  call <SID>ExpandTab(2)
+  setlocal foldmethod=syntax
+  syn region myFold start=/> > > ---/ end=/^$/ transparent fold
+  syn sync fromstart
 endfunction
 " }}}
 
