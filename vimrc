@@ -80,7 +80,7 @@ let mapleader = ","
 nnoremap ^ /\c\<<C-R><C-W>\><CR>
 nnoremap Y y$
 nnoremap dl dt_
-inoremap <C-C> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
+inoremap <C-F> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
@@ -155,6 +155,7 @@ com! -nargs=? C call <SID>Count("<args>")
 com! -nargs=? CC cd %:h
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
+com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:win_prefix.'/works/scriptbundle/kb/*.org' | let @/='\<'.<f-args>.'\>' | set filetype=org
 com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
 com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
 com! -nargs=0 -bar Df :diffthis|exe "normal \<C-W>w"|diffthis
@@ -347,6 +348,7 @@ Bundle 'matchit.zip'
 Bundle 'maksimr/vim-translator'
 Bundle 'digitaltoad/vim-jade'
 Bundle 'godlygeek/tabular'
+Bundle 'hsitz/VimOrganizer'
 filetype plugin indent on
 
 " nerdtree setup
