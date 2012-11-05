@@ -36,8 +36,15 @@ let $brookvim_root = expand("<sfile>:p:h")
 let g:NERDTreeDirArrows = 0
 let g:win_prefix = ''
 if has("win32")
-  let g:win_prefix = 'D:'
-  let g:cscope_cmd = 'D:/tools/vim/cscope.exe'
+  set gfn=Consolas:h14:cANSI
+  set enc=utf-8
+  if isdirectory('D:/works/scriptbundle')
+    let g:win_prefix = 'D:'
+    let g:cscope_cmd = 'D:/tools/vim/cscope.exe'
+  else
+    let g:win_prefix = 'C:'
+    let g:cscope_cmd = 'C:/tools/vim/cscope.exe'
+  endif
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
   if $PATH !~ "\\c.cygwin.bin"
     let $PATH='C:\cygwin\bin;'.$PATH
@@ -116,6 +123,10 @@ nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with P
 nnoremap <silent> <space>, :call <SID>CloseConsole()<CR>
 nnoremap <silent> <space>f :tabf <cfile><CR>
 vnoremap <silent> <space>f y:tabf <C-R>"<CR>
+vnoremap <silent> * "vy/<C-R>v<CR>
+let g:eregex_meta_chars = '^$()|[]{}.*+?\/'
+vnoremap <leader>s "vy:<C-u>%s/\<<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>\>//g<Left><Left>
+vnoremap <leader>g "vy:<C-u>%s/<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>//g<Left><Left>
 nnoremap <silent> <space>q :q<CR>
 nnoremap <silent> <space>t :tabe<CR>
 nnoremap <silent> <space>v :vnew<CR>
@@ -160,11 +171,11 @@ com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
 com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
 com! -nargs=0 -bar Df :diffthis|exe "normal \<C-W>w"|diffthis
 com! -nargs=? Et call <SID>ExpandTab("<args>")
-com! -nargs=0 Gd exec ':g/'.@/.'/d'
+com! -nargs=0 -range=% Gd exec ':<line1>,<line2>g/'.@/.'/d'
 com! -nargs=* -complete=command -bar Rc call <SID>ReadExCmd(1, "botri 10", <q-args>)
 com! -nargs=* -complete=command -bar Ri call <SID>ReadExCmd(0, "botri 10", <q-args>)
 com! -nargs=0 -range Ucfirst let a=@/ | s/\(\a\)\(\a*\)/\1\L\2/g | let @/=a
-com! -nargs=0 Vd exec ':v/'.@/.'/d'
+com! -nargs=0 -range=% Vd exec ':<line1>,<line2>v/'.@/.'/d'
 com! -nargs=0 -bar D2h call <SID>D2h()
 com! -nargs=0 -bar H2d call <SID>H2d()
 com! -nargs=* -complete=file -bar Vsd call <SID>Vsd("<args>")
@@ -335,7 +346,7 @@ let g:bundle_dir = $brookvim_root."/bundle/"
 Bundle 'gmarik/vundle'
 Bundle 'actionscript.vim--Leider'
 Bundle 'Shougo/neocomplcache'
-Bundle 'Shougo/neocomplcache-snippets-complete'
+Bundle 'Shougo/neosnippet'
 Bundle 'scrooloose/nerdcommenter'
 Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
@@ -349,6 +360,8 @@ Bundle 'maksimr/vim-translator'
 Bundle 'digitaltoad/vim-jade'
 Bundle 'godlygeek/tabular'
 Bundle 'hsitz/VimOrganizer'
+Bundle 'mattn/gist-vim'
+Bundle 'mattn/webapi-vim'
 filetype plugin indent on
 
 " nerdtree setup
