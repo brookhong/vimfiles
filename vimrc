@@ -87,7 +87,9 @@ let mapleader = ","
 nnoremap ^ /\c\<<C-R><C-W>\><CR>
 nnoremap Y y$
 nnoremap dl dt_
-inoremap <C-F> <Esc>:s/=[^=]*$//g<CR>yiW$a=<C-R>=<C-R>0<CR>
+inoremap <C-F> <Esc>:s/=[^=]*$//g<CR>$yiW$a=<C-R>=<C-R>0<CR>
+nnoremap <expr> <C-j> (len(getloclist(0))>0)?':lnext<CR>':'<C-j>'
+nnoremap <expr> <C-k> (len(getloclist(0))>0)?':lprevious<CR>':'<C-k>'
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
@@ -105,10 +107,11 @@ nnoremap <silent> <leader>nh :let @/=""<CR>
 nnoremap <silent> <leader>qa :qall!<cr>
 nnoremap <silent> <leader>qb :CtrlPBuffer<CR>
 nnoremap <silent> <leader>qc :e!<Esc>ggdG<CR>
-nnoremap <silent> <leader>qd :Gdiff<CR>
+nnoremap <silent> <leader>qd :call <SID>MyGdiff()<CR>
 nnoremap <silent> <leader>qf :CtrlPMRU<CR>
 nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
 nnoremap <silent> <leader>ql :source $HOME/_session.vim<CR>
+nnoremap <silent> <leader>qn :enew!<CR>
 nnoremap <silent> <leader>qs :mksession! $HOME/_session.vim<Bar>qall!<CR>
 nnoremap <silent> <leader>qx :q!<CR>
 nnoremap <silent> <leader>sh :sp <cfile><CR>
@@ -123,8 +126,9 @@ nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with P
 nnoremap <silent> <space>, :call <SID>CloseConsole()<CR>
 nnoremap <silent> <space>f :tabf <cfile><CR>
 vnoremap <silent> <space>f y:tabf <C-R>"<CR>
-vnoremap <silent> * "vy/<C-R>v<CR>
 let g:eregex_meta_chars = '^$()|[]{}.*+?\/'
+let g:vregex_meta_chars = '^$|[].*\/'
+vnoremap <silent> * "vy/<C-r>=substitute(escape(@v,g:vregex_meta_chars),"\n",'\\n','g')<CR><CR>N
 vnoremap <leader>s "vy:<C-u>%s/\<<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>\>//g<Left><Left>
 vnoremap <leader>g "vy:<C-u>%s/<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>//g<Left><Left>
 nnoremap <silent> <space>q :q<CR>
@@ -146,7 +150,6 @@ autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."htt
 autocmd FileType vim        setlocal keywordprg=:help
 autocmd FileType markdown   call <SID>MyMarkDown()
 autocmd FileType yaml       call <SID>ExpandTab(2)
-autocmd BufReadPost * if &buftype=='quickfix' | setlocal statusline=%q%{(exists('w:quickfix_title'))?'-'.(w:quickfix_title):''}\ %=%-10.(%l,%c%V%) | endif
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
 " (happens when dropping a file on gvim).
@@ -166,10 +169,10 @@ com! -nargs=? C call <SID>Count("<args>")
 com! -nargs=? CC cd %:h
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
-com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:win_prefix.'/works/scriptbundle/kb/*.org' | let @/='\<'.<f-args>.'\>' | set filetype=org
+com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:win_prefix.'/works/scriptbundle/kb/*.org' | let @/=<f-args> | set filetype=org
 com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
 com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
-com! -nargs=0 -bar Df :diffthis|exe "normal \<C-W>w"|diffthis
+com! -nargs=0 -bar Df :if &diff|diffoff|exe "normal \<C-W>w"|diffoff|else|diffthis|exe "normal \<C-W>w"|diffthis|endif
 com! -nargs=? Et call <SID>ExpandTab("<args>")
 com! -nargs=0 -range=% Gd exec ':<line1>,<line2>g/'.@/.'/d'
 com! -nargs=* -complete=command -bar Rc call <SID>ReadExCmd(1, "botri 10", <q-args>)
@@ -187,6 +190,7 @@ com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
 com! -nargs=0 -bar RmEmptyLine :g/^\s*$/d
 com! -nargs=0 -bar RmTrailingBlanks :%s/\s\+$//g
+com! -nargs=0 -bar RmTags :%s/<[^>]*>//g
 com! -range TrailBlanks :call <SID>TrailBlanks(<line1>, <line2>)
 " }}}
 
@@ -336,7 +340,16 @@ function! s:MyMarkDown()
   syn region myFold start=/> > > ---/ end=/^$/ transparent fold
   syn sync fromstart
 endfunction
+
+function! s:MyGdiff()
+  if &diff
+    exec "normal \<C-W>hZQ"
+  else
+    Gdiff
+  endif
+endfunction
 " }}}
+"
 
 " plugins {{{
 filetype off
