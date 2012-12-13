@@ -84,17 +84,20 @@ endif
 
 " extended key map {{{
 let mapleader = ","
-nnoremap ^ /\c\<<C-R><C-W>\><CR>
+nnoremap # /\c\<<C-R><C-W>\><CR>
 nnoremap Y y$
 nnoremap dl dt_
 inoremap <C-F> <Esc>:s/=[^=]*$//g<CR>$yiW$a=<C-R>=<C-R>0<CR>
 nnoremap <expr> <C-j> (len(getloclist(0))>0)?':lnext<CR>':'<C-j>'
 nnoremap <expr> <C-k> (len(getloclist(0))>0)?':lprevious<CR>':'<C-k>'
+nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
+inoremap <S-Space> <Esc>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
 nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir ".g:win_prefix."/works/scriptbundle/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
-nnoremap <silent> <leader>a :exec "redi!  >>".g:win_prefix."/works/scriptbundle/vocabulary.lst \|echo expand('<cword>') \| redi END"<CR>
+
+nnoremap <silent> <leader>a :call <SID>AppendToFile(g:win_prefix.'/works/scriptbundle/vocabulary.lst', expand('<cword>'))<CR>
 nnoremap <silent> <leader>b :%!bash<CR>
 nnoremap <silent> <leader>d "_d
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
@@ -139,8 +142,9 @@ imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>
 " }}}
 
 " autocmds {{{
-autocmd BufRead,BufNewFile *.as set filetype=actionscript
-autocmd BufRead,BufNewFile *.json set filetype=javascript
+autocmd bufwritepost        $brookvim_root/vimrc source %
+autocmd BufRead,BufNewFile  *.as set filetype=actionscript
+autocmd BufRead,BufNewFile  *.json set filetype=javascript
 autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
 autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
 autocmd FileType ruby       nnoremap <buffer> <leader>r :!ruby %<CR>
@@ -167,6 +171,7 @@ autocmd BufEnter * if &buftype=="nofile" && winbufnr(2) == -1 && bufname('%') ==
 " custom commands {{{
 com! -nargs=? C call <SID>Count("<args>")
 com! -nargs=? CC cd %:h
+com! -nargs=? Cf Rc echo expand('%:p')
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
 com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:win_prefix.'/works/scriptbundle/kb/*.org' | let @/=<f-args> | set filetype=org
@@ -347,6 +352,13 @@ function! s:MyGdiff()
   else
     Gdiff
   endif
+endfunction
+
+function! s:AppendToFile(file, line)
+  let l:myWords = readfile(a:file)
+  call add(l:myWords, a:line)
+  call writefile(l:myWords, a:file)
+  echo a:line
 endfunction
 " }}}
 "
