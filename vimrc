@@ -94,6 +94,7 @@ nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
+inoremap <leader>. <Esc>
 nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir ".g:win_prefix."/works/scriptbundle/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
 
 nnoremap <silent> <leader>a :call <SID>AppendToFile(g:win_prefix.'/works/scriptbundle/vocabulary.lst', expand('<cword>'))<CR>
@@ -142,11 +143,11 @@ imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>
 " autocmds {{{
 autocmd BufRead,BufNewFile  *.as set filetype=actionscript
 autocmd BufRead,BufNewFile  *.json set filetype=javascript
-autocmd FileType sh         nnoremap <buffer> <leader>r :%!bash<CR>
-autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
-autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
-autocmd FileType ruby       nnoremap <buffer> <leader>r :!ruby %<CR>
-autocmd FileType perl       nnoremap <buffer> <leader>r :!perl %<CR>
+autocmd FileType sh         nnoremap <buffer> <leader>r :call <SID>RunMe('bash', 'botri 10')<CR>
+autocmd FileType php        nnoremap <buffer> <leader>r :call <SID>RunMe('php', 'botri 10')<CR>
+autocmd FileType python     nnoremap <buffer> <leader>r :call <SID>RunMe('python', 'botri 10')<CR>
+autocmd FileType ruby       nnoremap <buffer> <leader>r :call <SID>RunMe('ruby', 'botri 10')<CR>
+autocmd FileType perl       nnoremap <buffer> <leader>r :call <SID>RunMe('perl', 'botri 10')<CR>
 autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrowser.expand("%")<CR>
 autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
 autocmd FileType vim        setlocal keywordprg=:help
@@ -255,6 +256,13 @@ function! s:ReadExCmd(flag,winOp,exCmd)
   else
     if a:exCmd[0] == "!" | call append(0, l:result) | else | exec "normal \"xp" | endif
   endif
+endfunction
+
+function! s:RunMe(interpreter, winOp)
+  exec '%!'.a:interpreter
+  exec "normal ggyGu"
+  call <SID>FocusMyConsole(a:winOp)
+  execute "normal gg\"_dGP\<c-w>p"
 endfunction
 
 function! s:CloseConsole()
