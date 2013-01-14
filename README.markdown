@@ -4,20 +4,31 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
 
 ## Installation
 
-    git clone git://github.com/brookhong/vimfiles.git <your_vimrc_folder>
-    cd <your_vimrc_folder>
-    git clone git://github.com/gmarik/vundle.git bundle/vundle
+    git clone git://github.com/brookhong/vimfiles.git <your_vimrc_folder> && cd <your_vimrc_folder> && git submodule update --init
     echo "source <your_vimrc_folder>/vimrc" >> <system_vimrc or user_vimrc>
     vim +BundleInstall! +BundleClean +q
 
 ## Key Mappings
 
-    ^                   => search word under cursor with ignorecase on
-    Y                   => y$
-    <C-C>               => calculate expession at current line, for example, at a new line, input (3+4)*2=<C-C>
+### Insert mode
+    <C-F>               => calculate expession at current line, for example, at a new line, input (3+4)*2=<C-C>
     <F5>                => insert date time like 22:35 2012/03/21
     <S-TAB>             => toggle expandtab
+### Visual mode
+    <Space>f            => tabf <selected file>
+    *                   => search visual selected text
+    <leader>g           => quick replace visual selected text
+    <leader>s           => quick replace visual selected text, with word boundary
+### Normal mode
+    #                   => search word under cursor with ignorecase on
+    dl                  => dt_, delete till _
+    Y                   => y$
+    <C-B>               => switch buffer forward
+    <C-J>               => go to next location from location list, with :lnext
+    <C-K>               => go to previous location from location list, with :lprevious
+    <S-TAB>             => toggle expandtab
     <leader>,           => translate word uner cursor with sdcv
+    <leader>a           => Add current word to my vocabulary.lst
     <leader>d           => delete to black hole register "_
     <leader>e           => ToggleNERDTree
     <leader>g           => Grep word under cursor
@@ -25,7 +36,8 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
     <leader>j           => paste from registers interactively
     <leader>l           => toggle Location list
     <leader>m           => go to Mark interactively
-    <leader>r           => run current file
+    <leader>r           => run current file, for perl/php/python/ruby/perl/html. As to bash, current buffer will be replaced.
+    <leader>t           => toggle Tag list
     <leader>nh          => clear(No) search Highlight
     <leader>qa          => Quit All
     <leader>qb          => Quick Buffer by CtrlPBuffer
@@ -34,9 +46,11 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
     <leader>qf          => Quick File by CtrlPMRU
     <leader>qi          => Quick Index word under cursor
     <leader>ql          => Quick Load session
+    <leader>qn          => force to new buffer
     <leader>qs          => Quit and Save session
     <leader>qx          => force to Quit
     <leader>sh          => Split Horizontally
+    <leader>sl          => Toggle &list
     <leader>sv          => Split Vertically
     <leader>ve          => Vimrc to be Edit
     <leader>vs          => Vimrc to be Source
@@ -51,7 +65,7 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
     <Space>v            => new window Vertically
     <Space>w            => new Window
 
-## Extened Commands
+## Extended Commands
 
     C                   => Count the number of matches for last search pattern(@/)
     C <pattern>         => Count the number of matches for pattern
@@ -75,6 +89,8 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
     RmDupLine           => Remove Duplicate Lines
     RmEmptyLine         => Clear Empty Line
     TrailBlanks         => padding all visual selected lines with trailing blanks
+    SmallFont           => reduce font size in VIM with GUI, such gvim/macvim
+    LargeFont           => enlarge font size in VIM with GUI, such gvim/macvim
 
 ## Most useful keystrokes
 ### Insert mode

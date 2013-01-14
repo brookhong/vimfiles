@@ -93,12 +93,10 @@ nnoremap <expr> <C-k> (len(getloclist(0))>0)?':lprevious<CR>':'<C-k>'
 nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
 inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
-inoremap <S-Space> <Esc>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
 nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir ".g:win_prefix."/works/scriptbundle/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
 
 nnoremap <silent> <leader>a :call <SID>AppendToFile(g:win_prefix.'/works/scriptbundle/vocabulary.lst', expand('<cword>'))<CR>
-nnoremap <silent> <leader>b :%!bash<CR>
 nnoremap <silent> <leader>d "_d
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <silent> <leader>g :call <SID>MyGrep("<C-R><C-W>")<CR>
@@ -142,9 +140,9 @@ imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>
 " }}}
 
 " autocmds {{{
-autocmd bufwritepost        $brookvim_root/vimrc source %
 autocmd BufRead,BufNewFile  *.as set filetype=actionscript
 autocmd BufRead,BufNewFile  *.json set filetype=javascript
+autocmd FileType sh         nnoremap <buffer> <leader>r :%!bash<CR>
 autocmd FileType php        nnoremap <buffer> <leader>r :!php %<CR>
 autocmd FileType python     nnoremap <buffer> <leader>r :!python %<CR>
 autocmd FileType ruby       nnoremap <buffer> <leader>r :!ruby %<CR>
@@ -197,6 +195,8 @@ com! -nargs=0 -bar RmEmptyLine :g/^\s*$/d
 com! -nargs=0 -bar RmTrailingBlanks :%s/\s\+$//g
 com! -nargs=0 -bar RmTags :%s/<[^>]*>//g
 com! -range TrailBlanks :call <SID>TrailBlanks(<line1>, <line2>)
+com! -nargs=0 LargeFont :let &gfn=substitute(&gfn,"\\(\\D*\\)\\(\\d\\+\\)", "\\=submatch(1).(submatch(2)+2)","")
+com! -nargs=0 SmallFont :let &gfn=substitute(&gfn,"\\(\\D*\\)\\(\\d\\+\\)", "\\=submatch(1).(submatch(2)-2)","")
 " }}}
 
 " expandtab functions {{{
