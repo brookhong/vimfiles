@@ -97,3 +97,21 @@ Used across vim(terminal), MacVim(MAC) and gVim(WINDOWS/linux).
     ctrl+r              => help <C-R>
 ### Normal mode
     vat                 => help text-objects
+
+## Plugins
+### gmarik/vundle -- https://github.com/gmarik/vundle
+### Shougo/neocomplcache -- https://github.com/Shougo/neocomplcache
+### Shougo/neosnippet -- https://github.com/Shougo/neosnippet
+### scrooloose/nerdcommenter -- https://github.com/scrooloose/nerdcommenter
+### scrooloose/nerdtree -- https://github.com/scrooloose/nerdtree
+### kien/ctrlp.vim -- https://github.com/kien/ctrlp.vim
+### tpope/vim-fugitive -- https://github.com/tpope/vim-fugitive
+### tpope/vim-surround -- https://github.com/tpope/vim-surround
+### brookhong/DBGPavim -- https://github.com/brookhong/DBGPavim
+### brookhong/cscope.vim -- https://github.com/brookhong/cscope.vim
+### brookhong/neco-php -- https://github.com/brookhong/neco-php
+### taglist.vim
+### matchit.zip
+### godlygeek/tabular -- https://github.com/godlygeek/tabular
+### hsitz/VimOrganizer -- https://github.com/hsitz/VimOrganizer
+### mattn/gist-vim -- https://github.com/mattn/gist-vim

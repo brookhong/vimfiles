@@ -20,6 +20,7 @@ set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{bufnr('%
 set list
 set listchars=tab:>-,trail:-
 set fileformat=unix
+set hidden
 syntax on
 
 " set number
@@ -137,7 +138,6 @@ nnoremap <silent> <space>q :q<CR>
 nnoremap <silent> <space>t :tabe<CR>
 nnoremap <silent> <space>v :vnew<CR>
 nnoremap <silent> <space>w :new<CR>
-imap <expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : "\<TAB>"
 " }}}
 
 " autocmds {{{
@@ -234,6 +234,7 @@ function! s:FocusMyConsole(winOp)
   if(l:consoleWin == -1)
     execute "silent ".a:winOp." new >-brook's console<-"
     setlocal buftype=nofile
+    setlocal nobuflisted
     let l:consoleWin = bufwinnr(">-brook's console<-")
   endif
   execute l:consoleWin."wincmd w"
@@ -269,7 +270,7 @@ function! s:CloseConsole()
   let l:consoleWin = bufwinnr(">-brook's console<-")
   if(l:consoleWin != -1)
     execute l:consoleWin."wincmd w"
-    quit
+    bdelete
   endif
 endfunction
 " }}}
@@ -387,6 +388,7 @@ Bundle 'tpope/vim-fugitive'
 Bundle 'tpope/vim-surround'
 Bundle 'brookhong/DBGPavim'
 Bundle 'brookhong/cscope.vim'
+Bundle 'brookhong/neco-php'
 Bundle 'taglist.vim'
 Bundle 'matchit.zip'
 Bundle 'maksimr/vim-translator'
@@ -417,6 +419,19 @@ endfunction
 
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
+imap <C-k>     <Plug>(neocomplcache_snippets_expand)
+smap <C-k>     <Plug>(neocomplcache_snippets_expand)
+inoremap <expr><C-g>     neocomplcache#undo_completion()
+inoremap <expr><C-l>     neocomplcache#complete_common_string()
+" <CR>: close popup and save indent.
+inoremap <expr><CR>  neocomplcache#smart_close_popup() . "\<CR>"
+" <TAB>: completion.
+inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+" <C-h>, <BS>: close popup and delete backword char.
+inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
+inoremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
+inoremap <expr><C-y>  neocomplcache#close_popup()
+inoremap <expr><C-e>  neocomplcache#cancel_popup()
 
 " ctrlp setup
 let g:ctrlp_clear_cache_on_exit = 0
