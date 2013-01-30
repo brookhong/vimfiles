@@ -20,8 +20,6 @@ set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{bufnr('%
 set list
 set listchars=tab:>-,trail:-
 set fileformat=unix
-set hidden
-syntax on
 
 " set number
 " set paste " cause abbreviate not working under linux/terminal
@@ -125,7 +123,7 @@ nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nnoremap <silent> <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <silent> <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
 nnoremap <silent> <leader>wt :execute 'Translate '.expand("<cword>")<CR>
-nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"ZY\<CR\>"<CR>
+nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"Zyy\<CR\>"<CR>
 nnoremap <silent> <space>, :call <SID>CloseConsole()<CR>
 nnoremap <silent> <space>f :tabf <cfile><CR>
 vnoremap <silent> <space>f y:tabf <C-R>"<CR>
@@ -398,6 +396,7 @@ Bundle 'hsitz/VimOrganizer'
 Bundle 'mattn/gist-vim'
 Bundle 'mattn/webapi-vim'
 filetype plugin indent on
+syntax on
 
 " nerdtree setup
 let t:NERDTreeRoot = ""
@@ -445,7 +444,7 @@ let g:ctrlp_custom_ignore       = {
 
 " VimOrganizer setup
 let g:ft_ignore_pat = '\.org'
-au! BufRead,BufWrite,BufWritePost,BufNewFile *.org 
+au! BufRead,BufWrite,BufWritePost,BufNewFile *.org
 au BufEnter *.org            call org#SetOrgFileType()
 command! OrgCapture :call org#CaptureBuffer()
 command! OrgCaptureFile :call org#OpenCaptureFile()
