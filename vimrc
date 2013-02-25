@@ -20,6 +20,10 @@ set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{bufnr('%
 set list
 set listchars=tab:>-,trail:-
 set fileformat=unix
+if isdirectory($HOME.'/.vim_swap') == 0
+  call mkdir($HOME.'/.vim_swap')
+endif
+set directory^=$HOME/.vim_swap//
 
 " set number
 " set paste " cause abbreviate not working under linux/terminal
@@ -34,10 +38,11 @@ set fileformat=unix
 let $brookvim_root = expand("<sfile>:p:h")
 let g:NERDTreeDirArrows = 0
 let g:win_prefix = ''
+let g:cloudStorage = $HOME.'/Dropbox'
 if has("win32")
   set gfn=Consolas:h14:cANSI
   set enc=utf-8
-  if isdirectory('D:/works/scriptbundle')
+  if isdirectory('D:/tools/vim/')
     let g:win_prefix = 'D:'
     let g:cscope_cmd = 'D:/tools/vim/cscope.exe'
   else
@@ -62,7 +67,7 @@ let &runtimepath = $brookvim_root.",".&runtimepath
 " }}}
 
 " UI-specific {{{
-if has("gui")
+if &term == 'builtin_gui'
   source $VIMRUNTIME/mswin.vim
   set clipboard=unnamed
 
@@ -72,7 +77,7 @@ if has("gui")
   let g:myScheme=s:schemeList[s:random]
   exec "colorscheme ".s:schemeList[s:random]
 else
-  colorscheme desert
+  colorscheme darkspectrum
   highlight CursorLine  term=standout cterm=bold
   highlight DiffAdd term=reverse cterm=bold ctermbg=green ctermfg=white
   highlight DiffChange term=reverse cterm=bold ctermbg=cyan ctermfg=black 
@@ -94,9 +99,9 @@ inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
 inoremap <leader>. <Esc>
-nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir ".g:win_prefix."/works/scriptbundle/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
+nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir ".g:cloudStorage."/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
 
-nnoremap <silent> <leader>a :call <SID>AppendToFile(g:win_prefix.'/works/scriptbundle/vocabulary.lst', expand('<cword>'))<CR>
+nnoremap <silent> <leader>a :call <SID>AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
 nnoremap <silent> <leader>d "_d
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <silent> <leader>g :call <SID>MyGrep("<C-R><C-W>")<CR>
@@ -111,9 +116,8 @@ nnoremap <silent> <leader>qc :e!<Esc>ggdG<CR>
 nnoremap <silent> <leader>qd :call <SID>MyGdiff()<CR>
 nnoremap <silent> <leader>qf :CtrlPMRU<CR>
 nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
-nnoremap <silent> <leader>ql :source $HOME/_session.vim<CR>
+nnoremap <silent> <leader>qk :execute 'e '.g:cloudStorage.'/data/tech.org'<CR>
 nnoremap <silent> <leader>qn :enew!<CR>
-nnoremap <silent> <leader>qs :mksession! $HOME/_session.vim<Bar>qall!<CR>
 nnoremap <silent> <leader>qx :q!<CR>
 nnoremap <silent> <leader>sh :sp <cfile><CR>
 nnoremap <silent> <leader>sl :let &list=!&list<CR>
@@ -146,6 +150,7 @@ autocmd FileType php        nnoremap <buffer> <leader>r :call <SID>RunMe('php', 
 autocmd FileType python     nnoremap <buffer> <leader>r :call <SID>RunMe('python', 'botri 10')<CR>
 autocmd FileType ruby       nnoremap <buffer> <leader>r :call <SID>RunMe('ruby', 'botri 10')<CR>
 autocmd FileType perl       nnoremap <buffer> <leader>r :call <SID>RunMe('perl', 'botri 10')<CR>
+autocmd FileType jade       nnoremap <buffer> <leader>r :call <SID>RunMe('jade -P', 'botri 10')<CR>
 autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrowser.expand("%")<CR>
 autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
 autocmd FileType vim        setlocal keywordprg=:help
@@ -171,7 +176,7 @@ com! -nargs=? CC cd %:h
 com! -nargs=? Cf Rc echo expand('%:p')
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
-com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:win_prefix.'/works/scriptbundle/kb/*.org' | let @/=<f-args> | set filetype=org
+com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:win_prefix.'/*.org' | let @/=<f-args> | set filetype=org
 com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
 com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
 com! -nargs=0 -bar Df :if &diff|diffoff|exe "normal \<C-W>w"|diffoff|else|diffthis|exe "normal \<C-W>w"|diffthis|endif
@@ -196,6 +201,7 @@ com! -nargs=0 -bar RmTags :%s/<[^>]*>//g
 com! -range TrailBlanks :call <SID>TrailBlanks(<line1>, <line2>)
 com! -nargs=0 LargeFont :let &gfn=substitute(&gfn,"\\(\\D*\\)\\(\\d\\+\\)", "\\=submatch(1).(submatch(2)+2)","")
 com! -nargs=0 SmallFont :let &gfn=substitute(&gfn,"\\(\\D*\\)\\(\\d\\+\\)", "\\=submatch(1).(submatch(2)-2)","")
+com! -nargs=0 ToggleAutoSDCV :call <SID>ToggleAutoSDCV()
 " }}}
 
 " expandtab functions {{{
@@ -395,6 +401,7 @@ Bundle 'godlygeek/tabular'
 Bundle 'hsitz/VimOrganizer'
 Bundle 'mattn/gist-vim'
 Bundle 'mattn/webapi-vim'
+Bundle 'chumakd/conque-shell-mirror'
 filetype plugin indent on
 syntax on
 
@@ -413,6 +420,17 @@ function! s:ToggleNERDTree(dir)
     NERDTreeClose
   else
     call s:NERDTreeOpen(a:dir)
+  endif
+endfunction
+function! s:ToggleAutoSDCV()
+  if exists("b:AutoSDCV")
+    nunmap <buffer> j
+    nunmap <buffer> k
+    unlet b:AutoSDCV
+  else
+    nmap <buffer> j j,,
+    nmap <buffer> k k,,
+    let b:AutoSDCV = 1
   endif
 endfunction
 
