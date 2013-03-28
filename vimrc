@@ -36,7 +36,6 @@ set directory^=$HOME/.vim_swap//
 " OS-specific {{{
 " find root path of my vimfiles
 let $brookvim_root = expand("<sfile>:p:h")
-let g:NERDTreeDirArrows = 0
 let g:win_prefix = ''
 let g:cloudStorage = $HOME.'/Dropbox'
 if has("win32")
@@ -67,7 +66,7 @@ let &runtimepath = $brookvim_root.",".&runtimepath
 " }}}
 
 " UI-specific {{{
-if &term == 'builtin_gui'
+if &term == 'builtin_gui' || &term == ''
   source $VIMRUNTIME/mswin.vim
   set clipboard=unnamed
 
@@ -89,6 +88,7 @@ endif
 " extended key map {{{
 let mapleader = ","
 nnoremap # /\c\<<C-R><C-W>\><CR>
+nnoremap }} g_l
 nnoremap Y y$
 nnoremap dl dt_
 inoremap <C-F> <Esc>:s/=[^=]*$//g<CR>$yiW$a=<C-R>=<C-R>0<CR>
@@ -105,6 +105,7 @@ nnoremap <silent> <leader>a :call <SID>AppendToFile(g:cloudStorage.'/data/vocabu
 nnoremap <silent> <leader>d "_d
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <silent> <leader>g :call <SID>MyGrep("<C-R><C-W>")<CR>
+nnoremap <silent> <leader>h :call <SID>ToggleHexView()<CR>
 nnoremap <silent> <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
 nnoremap <silent> <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
 nnoremap <silent> <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
@@ -153,9 +154,10 @@ autocmd FileType perl       nnoremap <buffer> <leader>r :call <SID>RunMe('perl',
 autocmd FileType jade       nnoremap <buffer> <leader>r :call <SID>RunMe('jade -P', 'botri 10')<CR>
 autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrowser.expand("%")<CR>
 autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
-autocmd FileType vim        setlocal keywordprg=:help
+autocmd FileType vim        setlocal keywordprg=:help | nnoremap <buffer> <leader>r :%y"<CR>:@"<CR>
 autocmd FileType markdown   call <SID>MyMarkDown()
 autocmd FileType yaml       call <SID>ExpandTab(2)
+autocmd FileType txt        call <SID>Hi('/[\x00-\xff]\+/')
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
 " (happens when dropping a file on gvim).
@@ -171,12 +173,15 @@ autocmd BufEnter * if &buftype=="nofile" && winbufnr(2) == -1 && bufname('%') ==
 " }}}
 
 " custom commands {{{
+com! -nargs=0 Bk call <SID>BackUp()
+com! -nargs=0 Bd call <SID>BackDiff()
 com! -nargs=? C call <SID>Count("<args>")
 com! -nargs=? CC cd %:h
 com! -nargs=? Cf Rc echo expand('%:p')
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
+com! -nargs=1 Ft let &ft=<f-args>
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
-com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:win_prefix.'/*.org' | let @/=<f-args> | set filetype=org
+com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:cloudStorage.'/data/tech.org' | let @/=<f-args> | normal ggn
 com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
 com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
 com! -nargs=0 -bar Df :if &diff|diffoff|exe "normal \<C-W>w"|diffoff|else|diffthis|exe "normal \<C-W>w"|diffthis|endif
@@ -191,6 +196,7 @@ com! -nargs=0 -bar H2d call <SID>H2d()
 com! -nargs=* -complete=file -bar Vsd call <SID>Vsd("<args>")
 com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
 com! -nargs=0 -bar FmtXML :%s/>\s*</>\r</ge|set ft=xml|normal ggVG=
+com! -nargs=0 -bar FmtJSON :%s/,"/,\r"/ge|%s/{"/{\r"/ge|%s/\(\S\)}/\1\r}/ge|set ft=javascript|normal ggVG=
 com! -nargs=0 -bar HtmlImg :call <SID>HtmlImg()
 com! -nargs=* -range Number :call <SID>Number(<line1>,<line2>,<f-args>)
 com! -nargs=0 -bar RmAllNL :%s/\n//g
@@ -402,24 +408,25 @@ Bundle 'hsitz/VimOrganizer'
 Bundle 'mattn/gist-vim'
 Bundle 'mattn/webapi-vim'
 Bundle 'chumakd/conque-shell-mirror'
+Bundle 'Lokaltog/vim-easymotion.git'
+Bundle 'DrawIt'
 filetype plugin indent on
 syntax on
+map <unique> \rwp <Plug>RestoreWinPosn
 
 " nerdtree setup
+let g:NERDTreeDirArrows = 0
 let t:NERDTreeRoot = ""
-function! s:NERDTreeOpen(dir)
-  if &bt == "" && expand("%") != ""
-    NERDTreeFind
-  else
-    execute ':NERDTree '.a:dir
-  endif
-  let t:NERDTreeRoot = a:dir
-endfunction
 function! s:ToggleNERDTree(dir)
   if exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1 && t:NERDTreeRoot == a:dir
     NERDTreeClose
   else
-    call s:NERDTreeOpen(a:dir)
+    if &bt == "" && expand("%") != ""
+      NERDTreeFind
+    else
+      execute ':NERDTree '.a:dir
+    endif
+    let t:NERDTreeRoot = a:dir
   endif
 endfunction
 function! s:ToggleAutoSDCV()
@@ -432,6 +439,46 @@ function! s:ToggleAutoSDCV()
     nmap <buffer> k k,,
     let b:AutoSDCV = 1
   endif
+endfunction
+function! s:Hi(pat)
+  highlight MyGroup ctermfg=green guifg=green
+  execute 'match MyGroup '.a:pat
+endfunction
+
+let s:backup_vim_dir = substitute($HOME,'\\','/','g')."/.backup.vim"
+if ! isdirectory(s:backup_vim_dir)
+  call mkdir(s:backup_vim_dir)
+endif
+
+function! s:BackFileName()
+  let l:fn = substitute(expand('%:p'),'\\','/','g')
+  let l:fn = substitute(l:fn,'/','_','g')
+  let l:fn = s:backup_vim_dir.'/'.l:fn
+  return l:fn
+endfunction
+
+function! s:BackUp()
+  exec ':w '.<SID>BackFileName()
+endfunction
+
+function! s:BackDiff()
+  if &diff
+    exec "normal \<C-W>hZQ"
+    exec "diffoff"
+  else
+    exec 'diffsplit '.<SID>BackFileName()
+    exec "normal \<c-w>H"
+  endif
+endfunction
+
+function! s:ToggleHexView()
+    if exists('b:isHexView') && b:isHexView == 1
+        %!xxd -r
+        let b:isHexView = 0
+    else
+        %!xxd
+        let b:isHexView = 1
+    endif
 endfunction
 
 " neocomplcache setup
@@ -463,7 +510,13 @@ let g:ctrlp_custom_ignore       = {
 " VimOrganizer setup
 let g:ft_ignore_pat = '\.org'
 au! BufRead,BufWrite,BufWritePost,BufNewFile *.org
-au BufEnter *.org            call org#SetOrgFileType()
+function! s:SetOrgFile()
+  if exists(':NeoComplCacheDisable') 
+    NeoComplCacheDisable 
+  endif
+  call org#SetOrgFileType()
+endfunction
+au BufEnter *.org :call <SID>SetOrgFile()
 command! OrgCapture :call org#CaptureBuffer()
 command! OrgCaptureFile :call org#OpenCaptureFile()
 " }}}
@@ -485,3 +538,4 @@ endif
 " }}}
 
 let g:goog_user_conf = { 'langpair': 'en|zh', 'v_key': 'T' }
+let g:EasyMotion_leader_key = '\'
