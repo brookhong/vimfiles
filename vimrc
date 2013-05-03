@@ -16,7 +16,7 @@ set guioptions-=m "disable menu
 set notimeout nottimeout
 set wildmenu
 set laststatus=2
-set statusline=%<%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %{getcwd()}\ %=%-10{bufnr('%').((&expandtab)?'-ET'.&tabstop:'-TAB')}\ %=%-10.(%l,%c%V%)\ %P
+set statusline=%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %<%{getcwd()}\ %=%n%-10{((&expandtab)?'-ET'.&tabstop:'-TAB')}\ %=%-10.(%l,%c%V%)\ %P
 set list
 set listchars=tab:>-,trail:-
 set fileformat=unix
@@ -126,14 +126,16 @@ nnoremap <silent> <leader>sv :vs <cfile><CR>
 nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nnoremap <silent> <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
+nnoremap <silent> <leader>wg :execute g:launchWebBrowser."https://www.google.com/search?q=".expand("<cword>")<CR>
 nnoremap <silent> <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
 nnoremap <silent> <leader>wt :execute 'Translate '.expand("<cword>")<CR>
 nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"Zyy\<CR\>"<CR>
 nnoremap <silent> <space>, :call <SID>CloseConsole()<CR>
+nnoremap <silent> <space>e :source $HOME/.vim_swap/e.vim<Bar>:call writefile([], $HOME."/.vim_swap/e.vim")<CR>
 nnoremap <silent> <space>f :tabf <cfile><CR>
 vnoremap <silent> <space>f y:tabf <C-R>"<CR>
 let g:eregex_meta_chars = '^$()|[]{}.*+?\/'
-let g:vregex_meta_chars = '^$|[].*\/'
+let g:vregex_meta_chars = '^$|[].*\/~'
 vnoremap <silent> * "vy/<C-r>=substitute(escape(@v,g:vregex_meta_chars),"\n",'\\n','g')<CR><CR>N
 vnoremap <leader>s "vy:<C-u>%s/\<<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>\>//g<Left><Left>
 vnoremap <leader>g "vy:<C-u>%s/<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>//g<Left><Left>
@@ -141,9 +143,34 @@ nnoremap <silent> <space>q :q<CR>
 nnoremap <silent> <space>t :tabe<CR>
 nnoremap <silent> <space>v :vnew<CR>
 nnoremap <silent> <space>w :new<CR>
+if executable('say')
+  nnoremap <silent> <space>r :silent exec ':!say -v Vicki '.expand('<cword>')<CR>
+  vnoremap <silent> <space>r "vy:silent exec ':!say -v Vicki "'.@v.'"'<CR>
+elseif executable('tts')
+  if !exists('g:ttsVoice')
+    let g:ttsVoice = 0
+  endif
+  nnoremap <silent> <space>r :silent exec ':!tts -v '.g:ttsVoice.' '.expand('<cword>')<CR>
+  vnoremap <silent> <space>r "vy:silent exec ':!tts -v '.g:ttsVoice.' "'.@v.'"'<CR>
+endif
 " }}}
 
 " autocmds {{{
+autocmd BufRead,BufNewFile  *.grp set filetype=grp
+autocmd FileType grp        nnoremap <silent> K :call <SID>PreviewFile()<CR>
+function! s:PreviewFile()
+    let l:files =  matchlist(expand('<cWORD>'),'\([^:]*\):\(\d\+\)')
+    let l:own = winnr()
+    exec "normal \<c-w>j"
+    let l:cwn = winnr()
+    let l:action = 'e'
+    if(l:cwn == l:own)
+        let l:action = 'bot sf'
+    endif
+    exec l:action.' +'.l:files[2].' '.l:files[1]
+    exec "normal \<c-w>k"
+endfunction
+
 autocmd BufRead,BufNewFile  *.as set filetype=actionscript
 autocmd BufRead,BufNewFile  *.json set filetype=javascript
 autocmd FileType sh         nnoremap <buffer> <leader>r :call <SID>RunMe('bash', 'botri 10')<CR>
@@ -240,6 +267,7 @@ endfunction
 " Read Ex-Command output to current buffer, for example, to read output of ls, just type -- {{{
 " :Rex ls
 function! s:FocusMyConsole(winOp)
+  let l:cwn = winnr()
   let l:consoleWin = bufwinnr(">-brook's console<-")
   if(l:consoleWin == -1)
     execute "silent ".a:winOp." new >-brook's console<-"
@@ -248,6 +276,7 @@ function! s:FocusMyConsole(winOp)
     let l:consoleWin = bufwinnr(">-brook's console<-")
   endif
   execute l:consoleWin."wincmd w"
+  return (l:cwn != l:consoleWin)
 endfunction
 
 function! s:ReadExCmd(flag,winOp,exCmd)
@@ -260,10 +289,12 @@ function! s:ReadExCmd(flag,winOp,exCmd)
     redi END
   endif
   if a:flag == 1
-    call <SID>FocusMyConsole(a:winOp)
+    let l:ret = <SID>FocusMyConsole(a:winOp)
     exec "normal gg\"_dG"
     if a:exCmd[0] == "!" | call append(0, l:result) | else | exec "normal \"xp" | endif
-    execute "normal gg\<c-w>p"
+    if(l:ret)
+      execute "normal gg\<c-w>p"
+  endif
   else
     if a:exCmd[0] == "!" | call append(0, l:result) | else | exec "normal \"xp" | endif
   endif
@@ -375,9 +406,11 @@ endfunction
 
 function! s:AppendToFile(file, line)
   let l:myWords = readfile(a:file)
-  call add(l:myWords, a:line)
-  call writefile(l:myWords, a:file)
-  echo a:line
+  if ! count(l:myWords, a:line)
+    call add(l:myWords, a:line)
+    call writefile(l:myWords, a:file)
+    echo a:line
+  endif
 endfunction
 " }}}
 "
@@ -409,10 +442,12 @@ Bundle 'mattn/gist-vim'
 Bundle 'mattn/webapi-vim'
 Bundle 'chumakd/conque-shell-mirror'
 Bundle 'Lokaltog/vim-easymotion.git'
-Bundle 'DrawIt'
+"Bundle 'DrawIt'
 filetype plugin indent on
 syntax on
-map <unique> \rwp <Plug>RestoreWinPosn
+
+" taglist setup
+let Tlist_Show_One_File = 1
 
 " nerdtree setup
 let g:NERDTreeDirArrows = 0
@@ -515,12 +550,17 @@ function! s:SetOrgFile()
     NeoComplCacheDisable 
   endif
   call org#SetOrgFileType()
+  nnoremap <buffer> K /^\*.*\c
 endfunction
 au BufEnter *.org :call <SID>SetOrgFile()
 command! OrgCapture :call org#CaptureBuffer()
 command! OrgCaptureFile :call org#OpenCaptureFile()
 " }}}
 "
+"
+function! s:VimEscape(str)
+  return substitute(a:str, '%', '\\%', 'g')
+endfunction
 " python utilities {{{
 if has("python")
   python import cgi
@@ -530,10 +570,21 @@ if has("python")
   python htmlparser = HTMLParser.HTMLParser()
   com! -nargs=1 -bar CgiEscape python print cgi.escape("<args>", True)
   com! -nargs=1 -bar CgiUnescape python print htmlparser.unescape("<args>")
-  com! -nargs=1 -bar UrlEncode python print urllib.quote_plus("<args>")
+  com! -nargs=1 -bar UrlEncode python print urllib.quote_plus(<q-args>)
   com! -nargs=1 -bar UrlDecode python print urllib.unquote_plus("<args>")
   com! -nargs=1 -bar Base64Encode python print base64.encodestring("<args>")
   com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
+
+  function! s:UrlEncode(str)
+    python << EOF
+str = vim.eval('a:str')
+urlStr = urllib.quote_plus(str)
+vim.command(('let l:urlStr="%s"') % urlStr)
+EOF
+    return l:urlStr
+  endfunction
+
+  vnoremap <leader>wb "vy:execute g:launchWebBrowser.'http://www.baidu.com/s?wd='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
 endif
 " }}}
 
