@@ -12,7 +12,7 @@ set incsearch " do incremental searching
 set hlsearch    "hilight searches by default
 set cursorline
 set guioptions-=T "disable toolbar
-set guioptions-=m "disable menu 
+set guioptions-=m "disable menu
 set notimeout nottimeout
 set wildmenu
 set laststatus=2
@@ -39,7 +39,7 @@ let $brookvim_root = expand("<sfile>:p:h")
 let g:win_prefix = ''
 let g:cloudStorage = $HOME.'/Dropbox'
 if has("win32")
-  set gfn=Consolas:h14:cANSI
+  set gfn=Consolas:h10:cANSI
   set enc=utf-8
   if isdirectory('D:/tools/vim/')
     let g:win_prefix = 'D:'
@@ -67,7 +67,6 @@ let &runtimepath = $brookvim_root.",".&runtimepath
 
 " UI-specific {{{
 if &term == 'builtin_gui' || &term == ''
-  source $VIMRUNTIME/mswin.vim
   set clipboard=unnamed
 
   let s:schemeList=["desert", "darkspectrum","desert256","moria"]
@@ -79,8 +78,8 @@ else
   colorscheme darkspectrum
   highlight CursorLine  term=standout cterm=bold
   highlight DiffAdd term=reverse cterm=bold ctermbg=green ctermfg=white
-  highlight DiffChange term=reverse cterm=bold ctermbg=cyan ctermfg=black 
-  highlight DiffText term=reverse cterm=bold ctermbg=gray ctermfg=black 
+  highlight DiffChange term=reverse cterm=bold ctermbg=cyan ctermfg=black
+  highlight DiffText term=reverse cterm=bold ctermbg=gray ctermfg=black
   highlight DiffDelete term=reverse cterm=bold ctermbg=red ctermfg=black
 endif
 " }}}
@@ -99,8 +98,6 @@ inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
 nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
 inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
 inoremap <leader>. <Esc>
-nnoremap <silent> <leader>, :call <SID>ReadExCmd(1, "topleft 20", "!sdcv -n --data-dir ".g:cloudStorage."/stardict-oxford-gb-formated-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
-
 nnoremap <silent> <leader>a :call <SID>AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
 nnoremap <silent> <leader>d "_d
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
@@ -130,7 +127,6 @@ nnoremap <silent> <leader>wg :execute g:launchWebBrowser."https://www.google.com
 nnoremap <silent> <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
 nnoremap <silent> <leader>wt :execute 'Translate '.expand("<cword>")<CR>
 nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"Zyy\<CR\>"<CR>
-nnoremap <silent> <space>, :call <SID>CloseConsole()<CR>
 nnoremap <silent> <space>e :source $HOME/.vim_swap/e.vim<Bar>:call writefile([], $HOME."/.vim_swap/e.vim")<CR>
 nnoremap <silent> <space>f :tabf <cfile><CR>
 vnoremap <silent> <space>f y:tabf <C-R>"<CR>
@@ -171,16 +167,22 @@ function! s:PreviewFile()
     exec "normal \<c-w>k"
 endfunction
 
+let g:optionalDB = $HOME.'/.optionalDB'
+nnoremap <silent> <leader>, :call k#ReadExCmdIntoConsole("topleft 20", "[ K.VIM ]", "!sdcv -n --data-dir ".g:cloudStorage."/stardict-oxford-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
+nnoremap <silent> <space>, :call k#CloseConsole("[ K.VIM ]")<CR>
+autocmd FileType sh         nnoremap <buffer> <leader>r :call k#RunMe('bash', 'botri 10', "[ K.VIM ]")<CR>
+autocmd FileType php        nnoremap <buffer> <leader>r :call k#RunMe('php', 'botri 10', "[ K.VIM ]")<CR>
+autocmd FileType python     nnoremap <buffer> <leader>r :call k#RunMe('python', 'botri 10', "[ K.VIM ]")<CR>
+autocmd FileType ruby       nnoremap <buffer> <leader>r :call k#RunMe('ruby', 'botri 10', "[ K.VIM ]")<CR>
+autocmd FileType perl       nnoremap <buffer> <leader>r :call k#RunMe('perl', 'botri 10', "[ K.VIM ]")<CR>
+autocmd FileType jade       nnoremap <buffer> <leader>r :call k#RunMe('jade -P', 'botri 10', "[ K.VIM ]")<CR>
+autocmd FileType php        nnoremap <buffer> <silent> K :call k#ReadExCmdIntoConsole("topleft 40", "[ K.VIM ]", "!sdcv -n --data-dir ".g:optionalDB."/php/ --utf8-output ".expand("<cword>"))<CR>
+com! -nargs=* -complete=command -bar Rc call k#ReadExCmdIntoConsole("botri 10", "[ K.VIM ]", <q-args>)
+com! -nargs=* -complete=command -bar Ri call k#ReadExCmd(<q-args>)
+
 autocmd BufRead,BufNewFile  *.as set filetype=actionscript
 autocmd BufRead,BufNewFile  *.json set filetype=javascript
-autocmd FileType sh         nnoremap <buffer> <leader>r :call <SID>RunMe('bash', 'botri 10')<CR>
-autocmd FileType php        nnoremap <buffer> <leader>r :call <SID>RunMe('php', 'botri 10')<CR>
-autocmd FileType python     nnoremap <buffer> <leader>r :call <SID>RunMe('python', 'botri 10')<CR>
-autocmd FileType ruby       nnoremap <buffer> <leader>r :call <SID>RunMe('ruby', 'botri 10')<CR>
-autocmd FileType perl       nnoremap <buffer> <leader>r :call <SID>RunMe('perl', 'botri 10')<CR>
-autocmd FileType jade       nnoremap <buffer> <leader>r :call <SID>RunMe('jade -P', 'botri 10')<CR>
 autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrowser.expand("%")<CR>
-autocmd FileType php        nnoremap <buffer> K :execute g:launchWebBrowser."http://jp.php.net/manual-lookup.php?pattern=".expand("<cword>")."&lang=zh&scope=quickref"<CR>
 autocmd FileType vim        setlocal keywordprg=:help | nnoremap <buffer> <leader>r :%y"<CR>:@"<CR>
 autocmd FileType markdown   call <SID>MyMarkDown()
 autocmd FileType yaml       call <SID>ExpandTab(2)
@@ -196,7 +198,6 @@ autocmd BufReadPost *
       \ endif
 autocmd CmdwinEnter * map <buffer> <F5> <CR>q:
 
-autocmd BufEnter * if &buftype=="nofile" && winbufnr(2) == -1 && bufname('%') == ">-brook's console<-" | quit | endif
 " }}}
 
 " custom commands {{{
@@ -214,8 +215,6 @@ com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
 com! -nargs=0 -bar Df :if &diff|diffoff|exe "normal \<C-W>w"|diffoff|else|diffthis|exe "normal \<C-W>w"|diffthis|endif
 com! -nargs=? Et call <SID>ExpandTab("<args>")
 com! -nargs=0 -range=% Gd exec ':<line1>,<line2>g/'.@/.'/d'
-com! -nargs=* -complete=command -bar Rc call <SID>ReadExCmd(1, "botri 10", <q-args>)
-com! -nargs=* -complete=command -bar Ri call <SID>ReadExCmd(0, "botri 10", <q-args>)
 com! -nargs=0 -range Ucfirst let a=@/ | s/\(\a\)\(\a*\)/\1\L\2/g | let @/=a
 com! -nargs=0 -range=% Vd exec ':<line1>,<line2>v/'.@/.'/d'
 com! -nargs=0 -bar D2h call <SID>D2h()
@@ -264,58 +263,6 @@ function! s:ExpandTab(tabWidth)
 endfunction
 " }}}
 
-" Read Ex-Command output to current buffer, for example, to read output of ls, just type -- {{{
-" :Rex ls
-function! s:FocusMyConsole(winOp)
-  let l:cwn = winnr()
-  let l:consoleWin = bufwinnr(">-brook's console<-")
-  if(l:consoleWin == -1)
-    execute "silent ".a:winOp." new >-brook's console<-"
-    setlocal buftype=nofile
-    setlocal nobuflisted
-    let l:consoleWin = bufwinnr(">-brook's console<-")
-  endif
-  execute l:consoleWin."wincmd w"
-  return (l:cwn != l:consoleWin)
-endfunction
-
-function! s:ReadExCmd(flag,winOp,exCmd)
-  if a:exCmd[0] == "!"
-    let l:shCmd = strpart(a:exCmd,1)
-    let l:result = split(system(l:shCmd),"\\n")
-  else
-    redi @x
-    silent exec a:exCmd
-    redi END
-  endif
-  if a:flag == 1
-    let l:ret = <SID>FocusMyConsole(a:winOp)
-    exec "normal gg\"_dG"
-    if a:exCmd[0] == "!" | call append(0, l:result) | else | exec "normal \"xp" | endif
-    if(l:ret)
-      execute "normal gg\<c-w>p"
-  endif
-  else
-    if a:exCmd[0] == "!" | call append(0, l:result) | else | exec "normal \"xp" | endif
-  endif
-endfunction
-
-function! s:RunMe(interpreter, winOp)
-  exec '%!'.a:interpreter
-  exec "normal ggyGu"
-  call <SID>FocusMyConsole(a:winOp)
-  execute "normal gg\"_dGP\<c-w>p"
-endfunction
-
-function! s:CloseConsole()
-  let l:consoleWin = bufwinnr(">-brook's console<-")
-  if(l:consoleWin != -1)
-    execute l:consoleWin."wincmd w"
-    bdelete
-  endif
-endfunction
-" }}}
-
 " MyGrep functions {{{
 function! s:MyGrep(word)
   let l:start = localtime()
@@ -345,7 +292,7 @@ endfunction
 function! s:TrailBlanks(s, e)
   let l:cols = []
   exec a:s.','.a:e."g/^/call add(cols, col('$'))"
-  let l:maxCol = max(cols)
+  let l:maxCol = max(cols)+2
   exec a:s.','.a:e."g/^/let n=l:maxCol-col('$') | exec 'normal '.n.'A '"
 endfunction
 
@@ -431,18 +378,14 @@ Bundle 'tpope/vim-fugitive'
 Bundle 'tpope/vim-surround'
 Bundle 'brookhong/DBGPavim'
 Bundle 'brookhong/cscope.vim'
-Bundle 'brookhong/neco-php'
 Bundle 'taglist.vim'
 Bundle 'matchit.zip'
-Bundle 'maksimr/vim-translator'
 Bundle 'digitaltoad/vim-jade'
 Bundle 'godlygeek/tabular'
 Bundle 'hsitz/VimOrganizer'
-Bundle 'mattn/gist-vim'
-Bundle 'mattn/webapi-vim'
-Bundle 'chumakd/conque-shell-mirror'
 Bundle 'Lokaltog/vim-easymotion.git'
 "Bundle 'DrawIt'
+source $brookvim_root/k.vim
 filetype plugin indent on
 syntax on
 
@@ -546,8 +489,8 @@ let g:ctrlp_custom_ignore       = {
 let g:ft_ignore_pat = '\.org'
 au! BufRead,BufWrite,BufWritePost,BufNewFile *.org
 function! s:SetOrgFile()
-  if exists(':NeoComplCacheDisable') 
-    NeoComplCacheDisable 
+  if exists(':NeoComplCacheDisable')
+    NeoComplCacheDisable
   endif
   call org#SetOrgFileType()
   nnoremap <buffer> K /^\*.*\c
@@ -585,8 +528,15 @@ EOF
   endfunction
 
   vnoremap <leader>wb "vy:execute g:launchWebBrowser.'http://www.baidu.com/s?wd='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
+  vnoremap <leader>wg "vy:execute g:launchWebBrowser.'http://www.google.com.hk/search?q='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
 endif
 " }}}
 
 let g:goog_user_conf = { 'langpair': 'en|zh', 'v_key': 'T' }
 let g:EasyMotion_leader_key = '\'
+
+if has("gui")
+  noremap <M-Space> :simalt ~<CR>
+  inoremap <M-Space> <C-O>:simalt ~<CR>
+  cnoremap <M-Space> <C-C>:simalt ~<CR>
+endif
