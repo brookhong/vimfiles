@@ -39,7 +39,7 @@ let $brookvim_root = expand("<sfile>:p:h")
 let g:win_prefix = ''
 let g:cloudStorage = $HOME.'/Dropbox'
 if has("win32")
-  set gfn=Consolas:h10:cANSI
+  set gfn=Consolas:h12:cANSI
   set enc=utf-8
   if isdirectory('D:/tools/vim/')
     let g:win_prefix = 'D:'
@@ -69,7 +69,12 @@ let &runtimepath = $brookvim_root.",".&runtimepath
 if &term == 'builtin_gui' || &term == ''
   set clipboard=unnamed
 
-  let s:schemeList=["desert", "darkspectrum","desert256","moria"]
+  let day=strftime("%H")
+  if day>7 && day<19
+    let s:schemeList=["moria"]
+  else
+    let s:schemeList=["desert", "darkspectrum","desert256"]
+  endif
   let s:random=substitute(localtime(),'\d','&+','g')
   let s:random=eval(substitute(s:random,'\(.*\)+$','(\1)%'.len(s:schemeList),''))
   let g:myScheme=s:schemeList[s:random]
@@ -94,9 +99,9 @@ inoremap <C-F> <Esc>:s/=[^=]*$//g<CR>$yiW$a=<C-R>=<C-R>0<CR>
 nnoremap <expr> <C-j> (len(getloclist(0))>0)?':lnext<CR>':'<C-j>'
 nnoremap <expr> <C-k> (len(getloclist(0))>0)?':lprevious<CR>':'<C-k>'
 nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
-inoremap <F5> <C-R>=strftime("%H:%M %Y/%m/%d")<CR>
-nnoremap <S-TAB> :call <SID>ExpandTab(0)<cr>
-inoremap <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
+inoremap <S-F5> <C-R>=strftime("%H:%M:%S %Y/%m/%d")<CR>
+nnoremap <silent> <S-TAB> :call <SID>ExpandTab(0)<cr>
+inoremap <silent> <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
 inoremap <leader>. <Esc>
 nnoremap <silent> <leader>a :call <SID>AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
 nnoremap <silent> <leader>d "_d
@@ -113,6 +118,7 @@ nnoremap <silent> <leader>qb :CtrlPBuffer<CR>
 nnoremap <silent> <leader>qc :e!<Esc>ggdG<CR>
 nnoremap <silent> <leader>qd :call <SID>MyGdiff()<CR>
 nnoremap <silent> <leader>qf :CtrlPMRU<CR>
+nnoremap <silent> <leader>qt :CtrlPFunky<CR>
 nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
 nnoremap <silent> <leader>qk :execute 'e '.g:cloudStorage.'/data/tech.org'<CR>
 nnoremap <silent> <leader>qn :enew!<CR>
@@ -130,7 +136,7 @@ nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with P
 nnoremap <silent> <space>e :source $HOME/.vim_swap/e.vim<Bar>:call writefile([], $HOME."/.vim_swap/e.vim")<CR>
 nnoremap <silent> <space>f :tabf <cfile><CR>
 vnoremap <silent> <space>f y:tabf <C-R>"<CR>
-let g:eregex_meta_chars = '^$()|[]{}.*+?\/'
+let g:eregex_meta_chars = '^$()[]{}.*+?\/'
 let g:vregex_meta_chars = '^$|[].*\/~'
 vnoremap <silent> * "vy/<C-r>=substitute(escape(@v,g:vregex_meta_chars),"\n",'\\n','g')<CR><CR>N
 vnoremap <leader>s "vy:<C-u>%s/\<<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>\>//g<Left><Left>
@@ -167,19 +173,6 @@ function! s:PreviewFile()
     exec "normal \<c-w>k"
 endfunction
 
-let g:optionalDB = $HOME.'/.optionalDB'
-nnoremap <silent> <leader>, :call k#ReadExCmdIntoConsole("topleft 20", "[ K.VIM ]", "!sdcv -n --data-dir ".g:cloudStorage."/stardict-oxford-2.4.2/ --utf8-output ".expand("<cword>"))<CR>
-nnoremap <silent> <space>, :call k#CloseConsole("[ K.VIM ]")<CR>
-autocmd FileType sh         nnoremap <buffer> <leader>r :call k#RunMe('bash', 'botri 10', "[ K.VIM ]")<CR>
-autocmd FileType php        nnoremap <buffer> <leader>r :call k#RunMe('php', 'botri 10', "[ K.VIM ]")<CR>
-autocmd FileType python     nnoremap <buffer> <leader>r :call k#RunMe('python', 'botri 10', "[ K.VIM ]")<CR>
-autocmd FileType ruby       nnoremap <buffer> <leader>r :call k#RunMe('ruby', 'botri 10', "[ K.VIM ]")<CR>
-autocmd FileType perl       nnoremap <buffer> <leader>r :call k#RunMe('perl', 'botri 10', "[ K.VIM ]")<CR>
-autocmd FileType jade       nnoremap <buffer> <leader>r :call k#RunMe('jade -P', 'botri 10', "[ K.VIM ]")<CR>
-autocmd FileType php        nnoremap <buffer> <silent> K :call k#ReadExCmdIntoConsole("topleft 40", "[ K.VIM ]", "!sdcv -n --data-dir ".g:optionalDB."/php/ --utf8-output ".expand("<cword>"))<CR>
-com! -nargs=* -complete=command -bar Rc call k#ReadExCmdIntoConsole("botri 10", "[ K.VIM ]", <q-args>)
-com! -nargs=* -complete=command -bar Ri call k#ReadExCmd(<q-args>)
-
 autocmd BufRead,BufNewFile  *.as set filetype=actionscript
 autocmd BufRead,BufNewFile  *.json set filetype=javascript
 autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrowser.expand("%")<CR>
@@ -203,7 +196,7 @@ autocmd CmdwinEnter * map <buffer> <F5> <CR>q:
 " custom commands {{{
 com! -nargs=0 Bk call <SID>BackUp()
 com! -nargs=0 Bd call <SID>BackDiff()
-com! -nargs=? C call <SID>Count("<args>")
+com! -nargs=? Ct call <SID>Count("<args>")
 com! -nargs=? CC cd %:h
 com! -nargs=? Cf Rc echo expand('%:p')
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
@@ -224,6 +217,7 @@ com! -nargs=0 -bar Dos2Unix :%s/\r//g|set ff=unix
 com! -nargs=0 -bar FmtXML :%s/>\s*</>\r</ge|set ft=xml|normal ggVG=
 com! -nargs=0 -bar FmtJSON :%s/,"/,\r"/ge|%s/{"/{\r"/ge|%s/\(\S\)}/\1\r}/ge|set ft=javascript|normal ggVG=
 com! -nargs=0 -bar HtmlImg :call <SID>HtmlImg()
+com! -nargs=* Lmerge :call <SID>Lmerge(<f-args>)
 com! -nargs=* -range Number :call <SID>Number(<line1>,<line2>,<f-args>)
 com! -nargs=0 -bar RmAllNL :%s/\n//g
 com! -nargs=0 -bar RmDupLine :%s/^\(.*\)\n\1$/\1/g
@@ -331,7 +325,7 @@ endfunction
 
 function! s:Number(line1, line2, start, suffix)
   let l:a = @/
-  exec a:line1.','a:line2.'s/^/\=line(".")-'.a:line1.'+'.a:start.'."'.a:suffix.'"/'
+  exec a:line1.','a:line2.'s/^/\=line(".")-'.a:line1.'+'.a:start.'."'.a:suffix.' "/'
   let @/ = l:a
 endfunction
 
@@ -368,26 +362,42 @@ let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
 call vundle#rc()
 let g:bundle_dir = $brookvim_root."/bundle/"
 Bundle 'gmarik/vundle'
-Bundle 'actionscript.vim--Leider'
 Bundle 'Shougo/neocomplcache'
 Bundle 'Shougo/neosnippet'
 Bundle 'scrooloose/nerdcommenter'
 Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
+Bundle "tacahiroy/ctrlp-funky.git"
 Bundle 'tpope/vim-fugitive'
 Bundle 'tpope/vim-surround'
+Bundle 'tpope/vim-repeat'
 Bundle 'brookhong/DBGPavim'
 Bundle 'brookhong/cscope.vim'
-Bundle 'taglist.vim'
+Bundle 'brookhong/k.vim'
 Bundle 'matchit.zip'
 Bundle 'digitaltoad/vim-jade'
 Bundle 'godlygeek/tabular'
 Bundle 'hsitz/VimOrganizer'
 Bundle 'Lokaltog/vim-easymotion.git'
+Bundle 'a.vim'
+Bundle 'sukima/xmledit'
+Bundle 'pangloss/vim-javascript'
+let g:xmledit_enable_html=1
 "Bundle 'DrawIt'
-source $brookvim_root/k.vim
+"Bundle 'taglist.vim'
+"Bundle 'actionscript.vim--Leider'
 filetype plugin indent on
 syntax on
+
+" k.vim setup
+let g:kdbDir = $HOME.'/Dropbox/kdb'
+let g:globalDBkeys = {
+      \ 'oxford' : '<leader>,',
+      \ }
+let g:localDBkeys = {
+      \ 'php' : ['K', '<C-j>'],
+      \ 'c' : ['K', '<C-j>'],
+      \ }
 
 " taglist setup
 let Tlist_Show_One_File = 1
@@ -459,10 +469,26 @@ function! s:ToggleHexView()
     endif
 endfunction
 
+function! s:Lmerge(ba, bb)
+  let l:la = getbufline(eval(a:ba), 1, '$')
+  let l:lb = getbufline(eval(a:bb), 1, '$')
+  let l:i = 0
+  let n = min([len(l:la), len(l:lb)])
+  while l:i < n
+    call append("$", l:la[l:i])
+    call append("$", l:lb[l:i])
+    let l:i = l:i+1
+  endwhile
+  echo n
+  if len(l:la) == n
+    call append("$", l:lb[(n):])
+  else
+    call append("$", l:la[(n):])
+  endif
+endfunction
+
 " neocomplcache setup
 let g:neocomplcache_enable_at_startup = 1
-imap <C-k>     <Plug>(neocomplcache_snippets_expand)
-smap <C-k>     <Plug>(neocomplcache_snippets_expand)
 inoremap <expr><C-g>     neocomplcache#undo_completion()
 inoremap <expr><C-l>     neocomplcache#complete_common_string()
 " <CR>: close popup and save indent.
@@ -475,6 +501,11 @@ inoremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
 inoremap <expr><C-y>  neocomplcache#close_popup()
 inoremap <expr><C-e>  neocomplcache#cancel_popup()
 
+" neosnippet setup
+imap <C-k>     <Plug>(neosnippet_expand_or_jump)
+smap <C-k>     <Plug>(neosnippet_expand_or_jump)
+xmap <C-k>     <Plug>(neosnippet_expand_target)
+
 " ctrlp setup
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_working_path_mode   = 0
@@ -484,18 +515,21 @@ let g:ctrlp_custom_ignore       = {
       \ 'dir':  '\.git$\|\.hg$\|\.svn$',
       \ 'file': '\.3dm$\|\.3g2$\|\.3gp$\|\.7z$\|\.a$\|\.a.out$\|\.accdb$\|\.ai$\|\.aif$\|\.aiff$\|\.app$\|\.arj$\|\.asf$\|\.asx$\|\.au$\|\.avi$\|\.bak$\|\.bin$\|\.bmp$\|\.bz2$\|\.cab$\|\.cer$\|\.cfm$\|\.cgi$\|\.com$\|\.cpl$\|\.csr$\|\.csv$\|\.cue$\|\.cur$\|\.dat$\|\.db$\|\.dbf$\|\.dbx$\|\.dds$\|\.deb$\|\.dem$\|\.dll$\|\.dmg$\|\.dmp$\|\.dng$\|\.doc$\|\.docx$\|\.drv$\|\.dwg$\|\.dxf$\|\.ear$\|\.efx$\|\.eps$\|\.epub$\|\.exe$\|\.fla$\|\.flv$\|\.fnt$\|\.fon$\|\.gadget$\|\.gam$\|\.gbr$\|\.ged$\|\.gif$\|\.gpx$\|\.gz$\|\.hqx$\|\.ibooks$\|\.icns$\|\.ico$\|\.ics$\|\.iff$\|\.img$\|\.indd$\|\.iso$\|\.jar$\|\.jpeg$\|\.jpg$\|\.key$\|\.keychain$\|\.kml$\|\.lnk$\|\.lz$\|\.m3u$\|\.m4a$\|\.max$\|\.mdb$\|\.mid$\|\.mim$\|\.moov$\|\.mov$\|\.movie$\|\.mp2$\|\.mp3$\|\.mp4$\|\.mpa$\|\.mpeg$\|\.mpg$\|\.msg$\|\.msi$\|\.nes$\|\.o$\|\.obj$\|\.ocx$\|\.odt$\|\.otf$\|\.pages$\|\.part$\|\.pct$\|\.pdb$\|\.pdf$\|\.pif$\|\.pkg$\|\.plugin$\|\.png$\|\.pps$\|\.ppt$\|\.pptx$\|\.prf$\|\.ps$\|\.psd$\|\.pspimage$\|\.qt$\|\.ra$\|\.rar$\|\.rm$\|\.rom$\|\.rpm$\|\.rtf$\|\.sav$\|\.scr$\|\.sdf$\|\.sea$\|\.sit$\|\.sitx$\|\.sln$\|\.smi$\|\.so$\|\.svg$\|\.swf$\|\.swp$\|\.sys$\|\.tar$\|\.tar.gz$\|\.tax2010$\|\.tga$\|\.thm$\|\.tif$\|\.tiff$\|\.tlb$\|\.tmp$\|\.toast$\|\.torrent$\|\.ttc$\|\.ttf$\|\.uu$\|\.uue$\|\.vb$\|\.vcd$\|\.vcf$\|\.vcxproj$\|\.vob$\|\.war$\|\.wav$\|\.wma$\|\.wmv$\|\.wpd$\|\.wps$\|\.xll$\|\.xlr$\|\.xls$\|\.xlsx$\|\.xpi$\|\.yuv$\|\.Z$\|\.zip$\|\.zipx$\|\.lib$\|\.res$\|\.rc$\|\.out$',
       \ }
+let g:ctrlp_extensions = ['funky']
 
 " VimOrganizer setup
 let g:ft_ignore_pat = '\.org'
-au! BufRead,BufWrite,BufWritePost,BufNewFile *.org
 function! s:SetOrgFile()
-  if exists(':NeoComplCacheDisable')
-    NeoComplCacheDisable
+  if !exists('b:OrgFile')
+    let b:OrgFile = 1
+    if exists(':NeoComplCacheDisable')
+      NeoComplCacheDisable
+    endif
+    call org#SetOrgFileType()
+    nnoremap <buffer> K /^\*.*\c
   endif
-  call org#SetOrgFileType()
-  nnoremap <buffer> K /^\*.*\c
 endfunction
-au BufEnter *.org :call <SID>SetOrgFile()
+au BufRead,BufWrite,BufWritePost,BufNewFile *.org :call <SID>SetOrgFile()
 command! OrgCapture :call org#CaptureBuffer()
 command! OrgCaptureFile :call org#OpenCaptureFile()
 " }}}
@@ -510,6 +544,7 @@ if has("python")
   python import HTMLParser
   python import urllib
   python import base64
+  python import datetime
   python htmlparser = HTMLParser.HTMLParser()
   com! -nargs=1 -bar CgiEscape python print cgi.escape("<args>", True)
   com! -nargs=1 -bar CgiUnescape python print htmlparser.unescape("<args>")
@@ -517,6 +552,7 @@ if has("python")
   com! -nargs=1 -bar UrlDecode python print urllib.unquote_plus("<args>")
   com! -nargs=1 -bar Base64Encode python print base64.encodestring("<args>")
   com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
+  com! -nargs=1 -bar Tm python print datetime.datetime.fromtimestamp(int("<args>")).strftime('%Y-%m-%d %H:%M:%S')
 
   function! s:UrlEncode(str)
     python << EOF
@@ -540,3 +576,4 @@ if has("gui")
   inoremap <M-Space> <C-O>:simalt ~<CR>
   cnoremap <M-Space> <C-C>:simalt ~<CR>
 endif
+nnoremap <space>h :windo if &bt=='help' <Bar>quit<Bar>endif<CR>
