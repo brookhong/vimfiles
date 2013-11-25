@@ -53,6 +53,7 @@ if has("win32")
     let $PATH='C:\cygwin\bin;'.$PATH
   endif
   let g:launchWebBrowser=":silent ! start "
+  let g:cloudStorage = 'd:/Dropbox'
 elseif has("mac")
   set guifont=Menlo:h14
   let g:NERDTreeDirArrows = 1
@@ -68,6 +69,7 @@ let &runtimepath = $brookvim_root.",".&runtimepath
 " UI-specific {{{
 if &term == 'builtin_gui' || &term == ''
   set clipboard=unnamed
+  "set clipboard=unnamedplus
 
   let day=strftime("%H")
   if day>7 && day<19
@@ -91,6 +93,8 @@ endif
 
 " extended key map {{{
 let mapleader = ","
+xnoremap <expr> P '"_d"'.v:register.'P'
+xnoremap C "_c
 nnoremap # /\c\<<C-R><C-W>\><CR>
 nnoremap }} g_l
 nnoremap Y y$
@@ -100,8 +104,8 @@ nnoremap <expr> <C-j> (len(getloclist(0))>0)?':lnext<CR>':'<C-j>'
 nnoremap <expr> <C-k> (len(getloclist(0))>0)?':lprevious<CR>':'<C-k>'
 nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
 inoremap <S-F5> <C-R>=strftime("%H:%M:%S %Y/%m/%d")<CR>
-nnoremap <silent> <S-TAB> :call <SID>ExpandTab(0)<cr>
-inoremap <silent> <S-TAB> <C-O>:call <SID>ExpandTab(0)<cr>
+nnoremap <silent> <S-TAB> :call <SID>ToggleTab()<cr>
+inoremap <silent> <S-TAB> <C-O>:call <SID>ToggleTab()<cr>
 inoremap <leader>. <Esc>
 nnoremap <silent> <leader>a :call <SID>AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
 nnoremap <silent> <leader>d "_d
@@ -125,6 +129,7 @@ nnoremap <silent> <leader>qn :enew!<CR>
 nnoremap <silent> <leader>qx :q!<CR>
 nnoremap <silent> <leader>sh :sp <cfile><CR>
 nnoremap <silent> <leader>sl :let &list=!&list<CR>
+nnoremap <silent> <leader>sp :let &paste=!&paste<CR>
 nnoremap <silent> <leader>sv :vs <cfile><CR>
 nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
@@ -178,7 +183,7 @@ autocmd BufRead,BufNewFile  *.json set filetype=javascript
 autocmd FileType html       nnoremap <buffer> <leader>r :execute g:launchWebBrowser.expand("%")<CR>
 autocmd FileType vim        setlocal keywordprg=:help | nnoremap <buffer> <leader>r :%y"<CR>:@"<CR>
 autocmd FileType markdown   call <SID>MyMarkDown()
-autocmd FileType yaml       call <SID>ExpandTab(2)
+autocmd FileType yaml,jade       call <SID>ExpandTab(2)
 autocmd FileType txt        call <SID>Hi('/[\x00-\xff]\+/')
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
@@ -200,7 +205,7 @@ com! -nargs=? Ct call <SID>Count("<args>")
 com! -nargs=? CC cd %:h
 com! -nargs=? Cf Rc echo expand('%:p')
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
-com! -nargs=1 Ft let &ft=<f-args>
+com! -nargs=1 -complete=customlist,s:GetFileTypes Ft let &ft=<f-args>
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
 com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:cloudStorage.'/data/tech.org' | let @/=<f-args> | normal ggn
 com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
@@ -228,31 +233,35 @@ com! -range TrailBlanks :call <SID>TrailBlanks(<line1>, <line2>)
 com! -nargs=0 LargeFont :let &gfn=substitute(&gfn,"\\(\\D*\\)\\(\\d\\+\\)", "\\=submatch(1).(submatch(2)+2)","")
 com! -nargs=0 SmallFont :let &gfn=substitute(&gfn,"\\(\\D*\\)\\(\\d\\+\\)", "\\=submatch(1).(submatch(2)-2)","")
 com! -nargs=0 ToggleAutoSDCV :call <SID>ToggleAutoSDCV()
+com! -nargs=* -range TE :let z=getline(<line1>,<line2>)|tabnew|call append(0, z)|set ft=<args>|unlet z
 " }}}
 
 " expandtab functions {{{
-let g:tabWidth = 4
-function! s:ExpandTab(tabWidth)
-  if (a:tabWidth == "") || (a:tabWidth == 0)
-    if &expandtab == 0
-      setl expandtab
-      execute 'setl tabstop='.g:tabWidth
-      execute 'setl shiftwidth='.g:tabWidth
-      execute 'setl softtabstop='.g:tabWidth
-      let @/="\t"
-    else
-      setl tabstop=8
-      setl shiftwidth=8
-      setl softtabstop=0
-      setl noexpandtab
+function! s:ExpandTab(...)
+  let l:tabWidth = 4
+  if a:0 > 0
+    let l:tabWidth = a:000[0]
+  endif
+  setl expandtab
+  let b:tabWidth = l:tabWidth
+  execute 'setl tabstop='.l:tabWidth
+  execute 'setl shiftwidth='.l:tabWidth
+  execute 'setl softtabstop='.l:tabWidth
+endfunction
+
+function! s:ToggleTab()
+  if &expandtab == 0
+    let l:tabWidth = 4
+    if exists("b:tabWidth")
+      let l:tabWidth = b:tabWidth
     endif
+    call <SID>ExpandTab(l:tabWidth)
   else
-    let g:tabWidth = a:tabWidth
-    setl expandtab
-    execute 'setl tabstop='.a:tabWidth
-    execute 'setl shiftwidth='.a:tabWidth
-    execute 'setl softtabstop='.a:tabWidth
-    let @/="\t"
+    let b:tabWidth = &tabstop
+    setl tabstop=8
+    setl shiftwidth=8
+    setl softtabstop=0
+    setl noexpandtab
   endif
 endfunction
 " }}}
@@ -390,7 +399,7 @@ filetype plugin indent on
 syntax on
 
 " k.vim setup
-let g:kdbDir = $HOME.'/Dropbox/kdb'
+let g:kdbDir = g:cloudStorage.'/kdb'
 let g:globalDBkeys = {
       \ 'oxford' : '<leader>,',
       \ }
@@ -538,6 +547,16 @@ command! OrgCaptureFile :call org#OpenCaptureFile()
 function! s:VimEscape(str)
   return substitute(a:str, '%', '\\%', 'g')
 endfunction
+
+function! s:GetFileTypes(A,L,P)
+  let l:sf = split(glob($VIMRUNTIME . '/syntax/' . a:A . '*.vim'),"\n")
+  let l:types = []
+  for f in l:sf
+    let l:fn = substitute(f,'.*[/\\]\([^.]*\).vim','\1','g')
+    call add(l:types, l:fn)
+  endfor
+  return l:types
+endfunction
 " python utilities {{{
 if has("python")
   python import cgi
@@ -545,6 +564,7 @@ if has("python")
   python import urllib
   python import base64
   python import datetime
+  python import time
   python htmlparser = HTMLParser.HTMLParser()
   com! -nargs=1 -bar CgiEscape python print cgi.escape("<args>", True)
   com! -nargs=1 -bar CgiUnescape python print htmlparser.unescape("<args>")
@@ -553,6 +573,7 @@ if has("python")
   com! -nargs=1 -bar Base64Encode python print base64.encodestring("<args>")
   com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
   com! -nargs=1 -bar Tm python print datetime.datetime.fromtimestamp(int("<args>")).strftime('%Y-%m-%d %H:%M:%S')
+  com! -nargs=0 -bar Now python print time.mktime(datetime.datetime.now().timetuple())
 
   function! s:UrlEncode(str)
     python << EOF
