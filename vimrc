@@ -91,6 +91,8 @@ else
 endif
 " }}}
 
+cabbre scu set clipboard=unnamedplus
+
 " extended key map {{{
 let mapleader = ","
 xnoremap <expr> P '"_d"'.v:register.'P'
@@ -110,7 +112,7 @@ inoremap <leader>. <Esc>
 nnoremap <silent> <leader>a :call <SID>AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
 nnoremap <silent> <leader>d "_d
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
-nnoremap <silent> <leader>g :call <SID>MyGrep("<C-R><C-W>")<CR>
+nnoremap <leader>g :LAg <C-R><C-W> <C-R>=ag#prePath()<CR>
 nnoremap <silent> <leader>h :call <SID>ToggleHexView()<CR>
 nnoremap <silent> <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
 nnoremap <silent> <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
@@ -208,7 +210,6 @@ com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
 com! -nargs=1 -complete=customlist,s:GetFileTypes Ft let &ft=<f-args>
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
 com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:cloudStorage.'/data/tech.org' | let @/=<f-args> | normal ggn
-com! -nargs=? -bar L :call <SID>MyGrep(<q-args>)
 com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
 com! -nargs=0 -bar Df :if &diff|diffoff|exe "normal \<C-W>w"|diffoff|else|diffthis|exe "normal \<C-W>w"|diffthis|endif
 com! -nargs=? Et call <SID>ExpandTab("<args>")
@@ -263,19 +264,6 @@ function! s:ToggleTab()
     setl softtabstop=0
     setl noexpandtab
   endif
-endfunction
-" }}}
-
-" MyGrep functions {{{
-function! s:MyGrep(word)
-  let l:start = localtime()
-  let @/='\<'.a:word.'\>'
-  if strlen(a:word) > 0
-    execute 'lgrep! "\<'.a:word.'\>" *'
-    lw
-  endif
-  let l:end = localtime()
-  let g:MyGrepTime = l:end - l:start
 endfunction
 " }}}
 
@@ -391,6 +379,7 @@ Bundle 'Lokaltog/vim-easymotion.git'
 Bundle 'a.vim'
 Bundle 'sukima/xmledit'
 Bundle 'pangloss/vim-javascript'
+Bundle 'epmatsw/ag.vim'
 let g:xmledit_enable_html=1
 "Bundle 'DrawIt'
 "Bundle 'taglist.vim'
