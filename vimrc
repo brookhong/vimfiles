@@ -39,7 +39,9 @@ let $brookvim_root = expand("<sfile>:p:h")
 let g:win_prefix = ''
 let g:cloudStorage = $HOME.'/Dropbox'
 if has("win32")
-  set gfn=Consolas:h12:cANSI
+  "set gfn=Consolas:h12:cANSI
+  "set gfn=Microsoft_YaHei_Mono:h12:cANSI
+  set gfn=Menlo:h10:cANSI
   set enc=utf-8
   if isdirectory('D:/tools/vim/')
     let g:win_prefix = 'D:'
@@ -61,6 +63,13 @@ elseif has("mac")
   let Tlist_Ctags_Cmd = '/usr/local/bin/ctags'
 elseif has("unix")
   let g:launchWebBrowser=":silent ! /opt/chrome/chrome-wrapper "
+  if executable('chromium')
+    let g:launchWebBrowser=":silent ! chromium "
+  endif
+  if has("X11")
+    nnoremap <leader>y "+y
+    vnoremap <leader>y "+y
+  endif
 endif
 " add it into runtimepath
 let &runtimepath = $brookvim_root.",".&runtimepath
@@ -94,7 +103,8 @@ endif
 cabbre scu set clipboard=unnamedplus
 
 " extended key map {{{
-let mapleader = ","
+nnoremap s <Nop>
+let mapleader = "s"
 xnoremap <expr> P '"_d"'.v:register.'P'
 xnoremap C "_c
 nnoremap # /\c\<<C-R><C-W>\><CR>
@@ -108,16 +118,15 @@ nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
 inoremap <S-F5> <C-R>=strftime("%H:%M:%S %Y/%m/%d")<CR>
 nnoremap <silent> <S-TAB> :call <SID>ToggleTab()<cr>
 inoremap <silent> <S-TAB> <C-O>:call <SID>ToggleTab()<cr>
-inoremap <leader>. <Esc>
 nnoremap <silent> <leader>a :call <SID>AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
-nnoremap <silent> <leader>d "_d
+nnoremap <silent> <space>d "_d
+nnoremap <silent> <space>c "_c
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <leader>g :LAg <C-R><C-W> <C-R>=ag#prePath()<CR>
 nnoremap <silent> <leader>h :call <SID>ToggleHexView()<CR>
-nnoremap <silent> <leader>i :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
+nnoremap <silent> <leader>k :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
 nnoremap <silent> <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
 nnoremap <silent> <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
-nnoremap <silent> <leader>t :Tlist<CR>
 nnoremap <silent> <leader>nh :let @/=""<CR>
 nnoremap <silent> <leader>qa :qall!<cr>
 nnoremap <silent> <leader>qb :CtrlPBuffer<CR>
@@ -129,10 +138,8 @@ nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr 
 nnoremap <silent> <leader>qk :execute 'e '.g:cloudStorage.'/data/tech.org'<CR>
 nnoremap <silent> <leader>qn :enew!<CR>
 nnoremap <silent> <leader>qx :q!<CR>
-nnoremap <silent> <leader>sh :sp <cfile><CR>
-nnoremap <silent> <leader>sl :let &list=!&list<CR>
-nnoremap <silent> <leader>sp :let &paste=!&paste<CR>
-nnoremap <silent> <leader>sv :vs <cfile><CR>
+nnoremap <silent> <leader>ol :let &list=!&list<CR>
+nnoremap <silent> <leader>op :let &paste=!&paste<CR>
 nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
 nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
 nnoremap <silent> <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
@@ -364,7 +371,7 @@ Bundle 'Shougo/neosnippet'
 Bundle 'scrooloose/nerdcommenter'
 Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
-Bundle "tacahiroy/ctrlp-funky.git"
+Bundle 'tacahiroy/ctrlp-funky.git'
 Bundle 'tpope/vim-fugitive'
 Bundle 'tpope/vim-surround'
 Bundle 'tpope/vim-repeat'
@@ -390,7 +397,8 @@ syntax on
 " k.vim setup
 let g:kdbDir = g:cloudStorage.'/kdb'
 let g:globalDBkeys = {
-      \ 'oxford' : '<leader>,',
+      \ 'oxford' : '<leader><leader>',
+      \ 'oxford7' : '<leader>7',
       \ }
 let g:localDBkeys = {
       \ 'php' : ['K', '<C-j>'],
@@ -402,6 +410,7 @@ let Tlist_Show_One_File = 1
 
 " nerdtree setup
 let g:NERDTreeDirArrows = 0
+let g:NERDTreeMapOpenVSplit = 'a'
 let t:NERDTreeRoot = ""
 function! s:ToggleNERDTree(dir)
   if exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1 && t:NERDTreeRoot == a:dir
@@ -415,14 +424,15 @@ function! s:ToggleNERDTree(dir)
     let t:NERDTreeRoot = a:dir
   endif
 endfunction
+
 function! s:ToggleAutoSDCV()
   if exists("b:AutoSDCV")
     nunmap <buffer> j
     nunmap <buffer> k
     unlet b:AutoSDCV
   else
-    nmap <buffer> j j,,
-    nmap <buffer> k k,,
+    nmap <buffer> j j<leader><leader>
+    nmap <buffer> k k<leader><leader>
     let b:AutoSDCV = 1
   endif
 endfunction
@@ -483,6 +493,19 @@ function! s:Lmerge(ba, bb)
   else
     call append("$", l:la[(n):])
   endif
+endfunction
+
+function! GetField(buffer, delim, index)
+  let l:lines = getbufline(eval(a:buffer), 1, '$')
+  let l:i = 0
+  let n = len(l:lines)
+  while l:i < n
+    let fields = split(l:lines[l:i], a:delim)
+    if len(fields) > a:index
+      call append("$", fields[a:index])
+    endif
+    let l:i = l:i+1
+  endwhile
 endfunction
 
 " neocomplcache setup
@@ -587,3 +610,4 @@ if has("gui")
   cnoremap <M-Space> <C-C>:simalt ~<CR>
 endif
 nnoremap <space>h :windo if &bt=='help' <Bar>quit<Bar>endif<CR>
+let &runtimepath = &runtimepath.",".$brookvim_root."/after"
