@@ -1,6 +1,9 @@
 " vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab foldmethod=marker
 " ff=unix
 
+" Purge previous auto commands (in case vimrc is run twice)
+autocmd!
+
 " general settings {{{
 set nocompatible
 set grepprg=grep\ -rsnI
@@ -28,9 +31,9 @@ set directory^=$HOME/.vim_swap//
 " set number
 " set paste " cause abbreviate not working under linux/terminal
 " automatic change directory to current buffer
-"if exists('+autochdir')
-  "set autochdir
-"endif
+if exists('+autochdir')
+  set autochdir
+endif
 " }}}
 
 " OS-specific {{{
@@ -121,8 +124,10 @@ inoremap <silent> <S-TAB> <C-O>:call <SID>ToggleTab()<cr>
 nnoremap <silent> <leader>a :call <SID>AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
 nnoremap <silent> <space>d "_d
 nnoremap <silent> <space>c "_c
+nnoremap <silent> <space>C "_C
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <leader>g :LAg <C-R><C-W> <C-R>=ag#prePath()<CR>
+vnoremap <leader>g "vy:<C-u>LAg <C-r>='"'.substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g').'"'<CR> <C-R>=ag#prePath()<CR>
 nnoremap <silent> <leader>h :call <SID>ToggleHexView()<CR>
 nnoremap <silent> <leader>k :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
 nnoremap <silent> <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
@@ -153,8 +158,8 @@ vnoremap <silent> <space>f y:tabf <C-R>"<CR>
 let g:eregex_meta_chars = '^$()[]{}.*+?\/'
 let g:vregex_meta_chars = '^$|[].*\/~'
 vnoremap <silent> * "vy/<C-r>=substitute(escape(@v,g:vregex_meta_chars),"\n",'\\n','g')<CR><CR>N
-vnoremap <leader>s "vy:<C-u>%s/\<<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>\>//g<Left><Left>
-vnoremap <leader>g "vy:<C-u>%s/<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>//g<Left><Left>
+vnoremap <leader>sw "vy:<C-u>%s/\<<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>\>//g<Left><Left>
+vnoremap <leader>sg "vy:<C-u>%s/<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>//g<Left><Left>
 nnoremap <silent> <space>q :q<CR>
 nnoremap <silent> <space>t :tabe<CR>
 nnoremap <silent> <space>v :vnew<CR>
@@ -368,6 +373,7 @@ let g:bundle_dir = $brookvim_root."/bundle/"
 Bundle 'gmarik/vundle'
 Bundle 'Shougo/neocomplcache'
 Bundle 'Shougo/neosnippet'
+Bundle 'Shougo/neosnippet-snippets'
 Bundle 'scrooloose/nerdcommenter'
 Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
@@ -378,6 +384,7 @@ Bundle 'tpope/vim-repeat'
 Bundle 'brookhong/DBGPavim'
 Bundle 'brookhong/cscope.vim'
 Bundle 'brookhong/k.vim'
+Bundle 'brookhong/ag.vim'
 Bundle 'matchit.zip'
 Bundle 'digitaltoad/vim-jade'
 Bundle 'godlygeek/tabular'
@@ -386,7 +393,7 @@ Bundle 'Lokaltog/vim-easymotion.git'
 Bundle 'a.vim'
 Bundle 'sukima/xmledit'
 Bundle 'pangloss/vim-javascript'
-Bundle 'epmatsw/ag.vim'
+Bundle 'kchmck/vim-coffee-script'
 let g:xmledit_enable_html=1
 "Bundle 'DrawIt'
 "Bundle 'taglist.vim'
@@ -411,9 +418,8 @@ let Tlist_Show_One_File = 1
 " nerdtree setup
 let g:NERDTreeDirArrows = 0
 let g:NERDTreeMapOpenVSplit = 'a'
-let t:NERDTreeRoot = ""
 function! s:ToggleNERDTree(dir)
-  if exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1 && t:NERDTreeRoot == a:dir
+  if exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1
     NERDTreeClose
   else
     if &bt == "" && expand("%") != ""
@@ -421,7 +427,6 @@ function! s:ToggleNERDTree(dir)
     else
       execute ':NERDTree '.a:dir
     endif
-    let t:NERDTreeRoot = a:dir
   endif
 endfunction
 
@@ -440,6 +445,11 @@ function! s:Hi(pat)
   highlight MyGroup ctermfg=green guifg=green
   execute 'match MyGroup '.a:pat
 endfunction
+function! Conceal(pat)
+  execute 'sy match tag_conceal "'.a:pat.'" conceal'
+  se cole=3
+endfunction
+
 
 let s:backup_vim_dir = substitute($HOME,'\\','/','g')."/.backup.vim"
 if ! isdirectory(s:backup_vim_dir)
