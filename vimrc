@@ -104,6 +104,10 @@ endif
 " }}}
 
 cabbre scu set clipboard=unnamedplus
+function! GetFilePath(bufnum)
+  return fnamemodify(bufname(str2nr(a:bufnum)), ":p:h")
+endfunction
+cmap <expr> ,p GetFilePath(input("buffer number: "))
 
 " extended key map {{{
 nnoremap s <Nop>
@@ -121,7 +125,7 @@ nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
 inoremap <S-F5> <C-R>=strftime("%H:%M:%S %Y/%m/%d")<CR>
 nnoremap <silent> <S-TAB> :call <SID>ToggleTab()<cr>
 inoremap <silent> <S-TAB> <C-O>:call <SID>ToggleTab()<cr>
-nnoremap <silent> <leader>a :call <SID>AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
+nnoremap <silent> <leader>a :call AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
 nnoremap <silent> <space>d "_d
 nnoremap <silent> <space>c "_c
 nnoremap <silent> <space>C "_C
@@ -141,6 +145,7 @@ nnoremap <silent> <leader>qf :CtrlPMRU<CR>
 nnoremap <silent> <leader>qt :CtrlPFunky<CR>
 nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
 nnoremap <silent> <leader>qk :execute 'e '.g:cloudStorage.'/data/tech.org'<CR>
+nnoremap <silent> <space>1 :execute 'e '.g:cloudStorage.'/data/clipboard.txt'<CR>
 nnoremap <silent> <leader>qn :enew!<CR>
 nnoremap <silent> <leader>qx :q!<CR>
 nnoremap <silent> <leader>ol :let &list=!&list<CR>
@@ -354,7 +359,7 @@ function! s:MyGdiff()
   endif
 endfunction
 
-function! s:AppendToFile(file, line)
+function! AppendToFile(file, line)
   let l:myWords = readfile(a:file)
   if ! count(l:myWords, a:line)
     call add(l:myWords, a:line)
