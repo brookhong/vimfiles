@@ -54,8 +54,8 @@ if has("win32")
     let g:cscope_cmd = 'C:/tools/vim/cscope.exe'
   endif
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
-  if $PATH !~ "\\c.cygwin.bin"
-    let $PATH='C:\cygwin\bin;'.$PATH
+  if $PATH !~ "\\d.cygwin.bin"
+    let $PATH='d:\cygwin\bin;'.$PATH
   endif
   let g:launchWebBrowser=":silent ! start "
   let g:cloudStorage = 'd:/Dropbox'
@@ -107,7 +107,26 @@ cabbre scu set clipboard=unnamedplus
 function! GetFilePath(bufnum)
   return fnamemodify(bufname(str2nr(a:bufnum)), ":p:h")
 endfunction
-cmap <expr> ,p GetFilePath(input("buffer number: "))
+cmap <expr> <C-x> GetFilePath(input("buffer number: "))
+
+function! s:Replace(type, ...)
+  let sel_save = &selection
+  let &selection = "inclusive"
+  let reg_save = @@
+
+  if a:0  " Invoked from Visual mode, use '< and '> marks.
+    silent exe "normal! `<" . a:type . "`>\"_xP"
+  elseif a:type == 'line'
+    silent exe "normal! '[V']\"_xP"
+  elseif a:type == 'block'
+    silent exe "normal! `[\<C-V>`]\"_xP"
+  else
+    silent exe "normal! `[v`]\"_xP"
+  endif
+
+  let &selection = sel_save
+  let @@ = reg_save
+endfunction
 
 " extended key map {{{
 nnoremap s <Nop>
@@ -156,6 +175,8 @@ nnoremap <silent> <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s
 nnoremap <silent> <leader>wg :execute g:launchWebBrowser."https://www.google.com/search?q=".expand("<cword>")<CR>
 nnoremap <silent> <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
 nnoremap <silent> <leader>wt :execute 'Translate '.expand("<cword>")<CR>
+nnoremap <silent> <leader>x :set opfunc=<SID>Replace<CR>g@
+vnoremap <silent> <leader>x :<C-U>call <SID>Replace(visualmode(), 1)<CR>
 nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"Zyy\<CR\>"<CR>
 nnoremap <silent> <space>e :source $HOME/.vim_swap/e.vim<Bar>:call writefile([], $HOME."/.vim_swap/e.vim")<CR>
 nnoremap <silent> <space>f :tabf <cfile><CR>
@@ -376,9 +397,6 @@ let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
 call vundle#rc()
 let g:bundle_dir = $brookvim_root."/bundle/"
 Bundle 'gmarik/vundle'
-Bundle 'Shougo/neocomplcache'
-Bundle 'Shougo/neosnippet'
-Bundle 'Shougo/neosnippet-snippets'
 Bundle 'scrooloose/nerdcommenter'
 Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
@@ -523,25 +541,6 @@ function! GetField(buffer, delim, index)
   endwhile
 endfunction
 
-" neocomplcache setup
-let g:neocomplcache_enable_at_startup = 1
-inoremap <expr><C-g>     neocomplcache#undo_completion()
-inoremap <expr><C-l>     neocomplcache#complete_common_string()
-" <CR>: close popup and save indent.
-inoremap <expr><CR>  neocomplcache#smart_close_popup() . "\<CR>"
-" <TAB>: completion.
-inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
-" <C-h>, <BS>: close popup and delete backword char.
-inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
-inoremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
-inoremap <expr><C-y>  neocomplcache#close_popup()
-inoremap <expr><C-e>  neocomplcache#cancel_popup()
-
-" neosnippet setup
-imap <C-k>     <Plug>(neosnippet_expand_or_jump)
-smap <C-k>     <Plug>(neosnippet_expand_or_jump)
-xmap <C-k>     <Plug>(neosnippet_expand_target)
-
 " ctrlp setup
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_working_path_mode   = 0
@@ -562,7 +561,7 @@ function! s:SetOrgFile()
       NeoComplCacheDisable
     endif
     call org#SetOrgFileType()
-    nnoremap <buffer> K /^\*.*\c
+    nnoremap <buffer> K /^\*.*\c\<\><Left><Left>
   endif
 endfunction
 au BufRead,BufWrite,BufWritePost,BufNewFile *.org :call <SID>SetOrgFile()
@@ -592,6 +591,7 @@ if has("python")
   python import base64
   python import datetime
   python import time
+  python import json
   python htmlparser = HTMLParser.HTMLParser()
   com! -nargs=1 -bar CgiEscape python print cgi.escape("<args>", True)
   com! -nargs=1 -bar CgiUnescape python print htmlparser.unescape("<args>")
@@ -601,6 +601,7 @@ if has("python")
   com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
   com! -nargs=1 -bar Tm python print datetime.datetime.fromtimestamp(int("<args>")).strftime('%Y-%m-%d %H:%M:%S')
   com! -nargs=0 -bar Now python print time.mktime(datetime.datetime.now().timetuple())
+  com! -nargs=0 -bar FmtJSON call FmtJSON()
 
   function! s:UrlEncode(str)
     python << EOF
@@ -609,6 +610,14 @@ urlStr = urllib.quote_plus(str)
 vim.command(('let l:urlStr="%s"') % urlStr)
 EOF
     return l:urlStr
+  endfunction
+
+  function! FmtJSON()
+    python << EOF
+jsonStr = "\n".join(vim.current.buffer[:])
+prettyJson = json.dumps(json.loads(jsonStr), sort_keys=True, indent=4, separators=(',', ': '))
+vim.current.buffer[:] = prettyJson.split('\n')
+EOF
   endfunction
 
   vnoremap <leader>wb "vy:execute g:launchWebBrowser.'http://www.baidu.com/s?wd='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
