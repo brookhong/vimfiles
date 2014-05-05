@@ -59,16 +59,19 @@ if has("win32")
   endif
   let g:launchWebBrowser=":silent ! start "
   let g:cloudStorage = 'd:/Dropbox'
+  let g:fileBrowser="explorer"
 elseif has("mac")
   set guifont=Menlo:h14
   let g:NERDTreeDirArrows = 1
   let g:launchWebBrowser=":silent ! open /Applications/Google\\ Chrome.app "
+  let g:fileBrowser="open"
   let Tlist_Ctags_Cmd = '/usr/local/bin/ctags'
 elseif has("unix")
   let g:launchWebBrowser=":silent ! /opt/chrome/chrome-wrapper "
   if executable('chromium')
     let g:launchWebBrowser=":silent ! chromium "
   endif
+  let g:fileBrowser="thunar"
   if has("X11")
     nnoremap <leader>y "+y
     vnoremap <leader>y "+y
@@ -145,6 +148,7 @@ inoremap <S-F5> <C-R>=strftime("%H:%M:%S %Y/%m/%d")<CR>
 nnoremap <silent> <S-TAB> :call <SID>ToggleTab()<cr>
 inoremap <silent> <S-TAB> <C-O>:call <SID>ToggleTab()<cr>
 nnoremap <silent> <leader>a :call AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
+nnoremap <leader>b :execute "silent !" . g:fileBrowser . " %:h"<CR>
 nnoremap <silent> <space>d "_d
 nnoremap <silent> <space>c "_c
 nnoremap <silent> <space>C "_C
@@ -152,8 +156,8 @@ nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <leader>g :LAg <C-R><C-W> <C-R>=ag#prePath()<CR>
 vnoremap <leader>g "vy:<C-u>LAg <C-r>='"'.substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g').'"'<CR> <C-R>=ag#prePath()<CR>
 nnoremap <silent> <leader>h :call <SID>ToggleHexView()<CR>
-nnoremap <silent> <leader>k :let nr = input("/\\c")<Bar>:exe "/\\c" . nr<CR>
-nnoremap <silent> <leader>j :reg<CR>:let nr = input(">\"")<Bar>exe "normal \"" . nr ."p"<CR>
+nnoremap <silent> <leader>k :let nr = input("/\\c")<Bar>if nr != "" <Bar>exe "/\\c" . nr<Bar>endif<CR>
+nnoremap <silent> <leader>j :reg<CR>:let nr = input(">\"")<Bar>if nr != "" <Bar>exe "normal \"" . nr ."p"<Bar>endif<CR>
 nnoremap <silent> <leader>m :marks<CR>:let nr = input(">`")<Bar>exe "normal `" . nr<CR>
 nnoremap <silent> <leader>nh :let @/=""<CR>
 nnoremap <silent> <leader>qa :qall!<cr>
@@ -161,8 +165,10 @@ nnoremap <silent> <leader>qb :CtrlPBuffer<CR>
 nnoremap <silent> <leader>qc :e!<Esc>ggdG<CR>
 nnoremap <silent> <leader>qd :call <SID>MyGdiff()<CR>
 nnoremap <silent> <leader>qf :CtrlPMRU<CR>
+nnoremap <silent> <leader>ql :CtrlPLine<CR>
 nnoremap <silent> <leader>qt :CtrlPFunky<CR>
-nnoremap <silent> <leader>qi [I:let nr = input("Goto: ")<Bar>exe "normal " . nr ."[\t"<CR>
+nnoremap <silent> <leader>qi :lgetexpr []<Bar>g/<C-r>=expand("<cword>")<CR>/laddexpr expand("%") . ":" . line(".") .  ":" . getline(".")<CR>:lw<CR>
+vnoremap <silent> <leader>qi "vy:lgetexpr []<Bar>g/<C-r>=substitute(escape(@v,g:vregex_meta_chars),"\n",'\\n','g')<CR>/laddexpr expand("%") . ":" . line(".") .  ":" . getline(".")<CR>:lw<CR>
 nnoremap <silent> <leader>qk :execute 'e '.g:cloudStorage.'/data/tech.org'<CR>
 nnoremap <silent> <space>1 :execute 'e '.g:cloudStorage.'/data/clipboard.txt'<CR>
 nnoremap <silent> <leader>qn :enew!<CR>
@@ -182,7 +188,7 @@ nnoremap <silent> <space>e :source $HOME/.vim_swap/e.vim<Bar>:call writefile([],
 nnoremap <silent> <space>f :tabf <cfile><CR>
 vnoremap <silent> <space>f y:tabf <C-R>"<CR>
 let g:eregex_meta_chars = '^$()[]{}.*+?\/'
-let g:vregex_meta_chars = '^$|[].*\/~'
+let g:vregex_meta_chars = '^$[].*\/~'
 vnoremap <silent> * "vy/<C-r>=substitute(escape(@v,g:vregex_meta_chars),"\n",'\\n','g')<CR><CR>N
 vnoremap <leader>sw "vy:<C-u>%s/\<<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>\>//g<Left><Left>
 vnoremap <leader>sg "vy:<C-u>%s/<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>//g<Left><Left>
@@ -417,6 +423,8 @@ Bundle 'a.vim'
 Bundle 'sukima/xmledit'
 Bundle 'pangloss/vim-javascript'
 Bundle 'kchmck/vim-coffee-script'
+Bundle 'ajh17/VimCompletesMe'
+Bundle 'msanders/snipmate.vim'
 let g:xmledit_enable_html=1
 "Bundle 'DrawIt'
 "Bundle 'taglist.vim'
@@ -550,7 +558,7 @@ let g:ctrlp_custom_ignore       = {
       \ 'dir':  '\.git$\|\.hg$\|\.svn$',
       \ 'file': '\.3dm$\|\.3g2$\|\.3gp$\|\.7z$\|\.a$\|\.a.out$\|\.accdb$\|\.ai$\|\.aif$\|\.aiff$\|\.app$\|\.arj$\|\.asf$\|\.asx$\|\.au$\|\.avi$\|\.bak$\|\.bin$\|\.bmp$\|\.bz2$\|\.cab$\|\.cer$\|\.cfm$\|\.cgi$\|\.com$\|\.cpl$\|\.csr$\|\.csv$\|\.cue$\|\.cur$\|\.dat$\|\.db$\|\.dbf$\|\.dbx$\|\.dds$\|\.deb$\|\.dem$\|\.dll$\|\.dmg$\|\.dmp$\|\.dng$\|\.doc$\|\.docx$\|\.drv$\|\.dwg$\|\.dxf$\|\.ear$\|\.efx$\|\.eps$\|\.epub$\|\.exe$\|\.fla$\|\.flv$\|\.fnt$\|\.fon$\|\.gadget$\|\.gam$\|\.gbr$\|\.ged$\|\.gif$\|\.gpx$\|\.gz$\|\.hqx$\|\.ibooks$\|\.icns$\|\.ico$\|\.ics$\|\.iff$\|\.img$\|\.indd$\|\.iso$\|\.jar$\|\.jpeg$\|\.jpg$\|\.key$\|\.keychain$\|\.kml$\|\.lnk$\|\.lz$\|\.m3u$\|\.m4a$\|\.max$\|\.mdb$\|\.mid$\|\.mim$\|\.moov$\|\.mov$\|\.movie$\|\.mp2$\|\.mp3$\|\.mp4$\|\.mpa$\|\.mpeg$\|\.mpg$\|\.msg$\|\.msi$\|\.nes$\|\.o$\|\.obj$\|\.ocx$\|\.odt$\|\.otf$\|\.pages$\|\.part$\|\.pct$\|\.pdb$\|\.pdf$\|\.pif$\|\.pkg$\|\.plugin$\|\.png$\|\.pps$\|\.ppt$\|\.pptx$\|\.prf$\|\.ps$\|\.psd$\|\.pspimage$\|\.qt$\|\.ra$\|\.rar$\|\.rm$\|\.rom$\|\.rpm$\|\.rtf$\|\.sav$\|\.scr$\|\.sdf$\|\.sea$\|\.sit$\|\.sitx$\|\.sln$\|\.smi$\|\.so$\|\.svg$\|\.swf$\|\.swp$\|\.sys$\|\.tar$\|\.tar.gz$\|\.tax2010$\|\.tga$\|\.thm$\|\.tif$\|\.tiff$\|\.tlb$\|\.tmp$\|\.toast$\|\.torrent$\|\.ttc$\|\.ttf$\|\.uu$\|\.uue$\|\.vb$\|\.vcd$\|\.vcf$\|\.vcxproj$\|\.vob$\|\.war$\|\.wav$\|\.wma$\|\.wmv$\|\.wpd$\|\.wps$\|\.xll$\|\.xlr$\|\.xls$\|\.xlsx$\|\.xpi$\|\.yuv$\|\.Z$\|\.zip$\|\.zipx$\|\.lib$\|\.res$\|\.rc$\|\.out$',
       \ }
-let g:ctrlp_extensions = ['funky']
+let g:ctrlp_extensions = ['funky', 'line']
 
 " VimOrganizer setup
 let g:ft_ignore_pat = '\.org'
@@ -585,43 +593,46 @@ function! s:GetFileTypes(A,L,P)
 endfunction
 " python utilities {{{
 if has("python")
-  python import cgi
-  python import HTMLParser
-  python import urllib
-  python import base64
-  python import datetime
-  python import time
-  python import json
-  python htmlparser = HTMLParser.HTMLParser()
-  com! -nargs=1 -bar CgiEscape python print cgi.escape("<args>", True)
-  com! -nargs=1 -bar CgiUnescape python print htmlparser.unescape("<args>")
-  com! -nargs=1 -bar UrlEncode python print urllib.quote_plus(<q-args>)
-  com! -nargs=1 -bar UrlDecode python print urllib.unquote_plus("<args>")
-  com! -nargs=1 -bar Base64Encode python print base64.encodestring("<args>")
-  com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
-  com! -nargs=1 -bar Tm python print datetime.datetime.fromtimestamp(int("<args>")).strftime('%Y-%m-%d %H:%M:%S')
-  com! -nargs=0 -bar Now python print time.mktime(datetime.datetime.now().timetuple())
-  com! -nargs=0 -bar FmtJSON call FmtJSON()
+  function s:PyUtils()
+    python import cgi
+    python import HTMLParser
+    python import urllib
+    python import base64
+    python import datetime
+    python import time
+    python import json
+    python htmlparser = HTMLParser.HTMLParser()
+    com! -nargs=1 -bar CgiEscape python print cgi.escape("<args>", True)
+    com! -nargs=1 -bar CgiUnescape python print htmlparser.unescape("<args>")
+    com! -nargs=1 -bar UrlEncode python print urllib.quote_plus(<q-args>)
+    com! -nargs=1 -bar UrlDecode python print urllib.unquote_plus("<args>")
+    com! -nargs=1 -bar Base64Encode python print base64.encodestring("<args>")
+    com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
+    com! -nargs=1 -bar Tm python print datetime.datetime.fromtimestamp(int("<args>")).strftime('%Y-%m-%d %H:%M:%S')
+    com! -nargs=0 -bar Now python print time.mktime(datetime.datetime.now().timetuple())
+    com! -nargs=0 -bar FmtJSON call FmtJSON()
 
-  function! s:UrlEncode(str)
-    python << EOF
-str = vim.eval('a:str')
-urlStr = urllib.quote_plus(str)
-vim.command(('let l:urlStr="%s"') % urlStr)
-EOF
-    return l:urlStr
-  endfunction
+    function! s:UrlEncode(str)
+      python << EOF
+  str = vim.eval('a:str')
+  urlStr = urllib.quote_plus(str)
+  vim.command(('let l:urlStr="%s"') % urlStr)
+  EOF
+      return l:urlStr
+    endfunction
 
-  function! FmtJSON()
-    python << EOF
+    function! FmtJSON()
+      python << EOF
 jsonStr = "\n".join(vim.current.buffer[:])
 prettyJson = json.dumps(json.loads(jsonStr), sort_keys=True, indent=4, separators=(',', ': '))
 vim.current.buffer[:] = prettyJson.split('\n')
 EOF
-  endfunction
+    endfunction
 
-  vnoremap <leader>wb "vy:execute g:launchWebBrowser.'http://www.baidu.com/s?wd='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
-  vnoremap <leader>wg "vy:execute g:launchWebBrowser.'http://www.google.com.hk/search?q='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
+    vnoremap <leader>wb "vy:execute g:launchWebBrowser.'http://www.baidu.com/s?wd='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
+    vnoremap <leader>wg "vy:execute g:launchWebBrowser.'http://www.google.com.hk/search?q='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
+  endfunction
+  com! -nargs=0 -bar PyUtils call <SID>PyUtils()
 endif
 " }}}
 
