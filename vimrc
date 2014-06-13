@@ -28,6 +28,9 @@ if isdirectory($HOME.'/.vim_swap') == 0
 endif
 set directory^=$HOME/.vim_swap//
 
+if exists('&relativenumber')
+  set relativenumber
+endif
 " set number
 " set paste " cause abbreviate not working under linux/terminal
 " automatic change directory to current buffer
@@ -181,6 +184,7 @@ nnoremap <silent> <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s
 nnoremap <silent> <leader>wg :execute g:launchWebBrowser."https://www.google.com/search?q=".expand("<cword>")<CR>
 nnoremap <silent> <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
 nnoremap <silent> <leader>wt :execute 'Translate '.expand("<cword>")<CR>
+nnoremap <silent> <leader>W :w<CR>
 nnoremap <silent> <leader>x :set opfunc=<SID>Replace<CR>g@
 vnoremap <silent> <leader>x :<C-U>call <SID>Replace(visualmode(), 1)<CR>
 nnoremap <silent> <leader>ya :let @z=""<Bar>:let nr=input("Yank all lines with PATTERN to register Z >")<Bar>:exe ":g/".nr."/normal \"Zyy\<CR\>"<CR>
@@ -212,7 +216,7 @@ endif
 autocmd BufRead,BufNewFile  *.grp set filetype=grp
 autocmd FileType grp        nnoremap <silent> K :call <SID>PreviewFile()<CR>
 function! s:PreviewFile()
-    let l:files =  matchlist(expand('<cWORD>'),'\([^:]*\):\(\d\+\)')
+    let l:files = matchlist(expand('<cWORD>'),'\([^:]*\):\(\d\+\)')
     let l:own = winnr()
     exec "normal \<c-w>j"
     let l:cwn = winnr()
@@ -250,6 +254,7 @@ com! -nargs=0 Bd call <SID>BackDiff()
 com! -nargs=? Ct call <SID>Count("<args>")
 com! -nargs=? CC cd %:h
 com! -nargs=? Cf Rc echo expand('%:p')
+com! -nargs=1 -complete=buffer Dw exec ':w! '.g:cloudStorage.'/tmp/'.<f-args>
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
 com! -nargs=1 -complete=customlist,s:GetFileTypes Ft let &ft=<f-args>
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
@@ -593,7 +598,7 @@ function! s:GetFileTypes(A,L,P)
 endfunction
 " python utilities {{{
 if has("python")
-  function s:PyUtils()
+  function! s:PyUtils()
     python import cgi
     python import HTMLParser
     python import urllib
@@ -601,24 +606,42 @@ if has("python")
     python import datetime
     python import time
     python import json
+    python import vim
     python htmlparser = HTMLParser.HTMLParser()
     com! -nargs=1 -bar CgiEscape python print cgi.escape("<args>", True)
     com! -nargs=1 -bar CgiUnescape python print htmlparser.unescape("<args>")
-    com! -nargs=1 -bar UrlEncode python print urllib.quote_plus(<q-args>)
-    com! -nargs=1 -bar UrlDecode python print urllib.unquote_plus("<args>")
+    com! -nargs=* -range=% UrlEncode :call <SID>EncodeURL(<line1>,<line2>,1)
+    com! -nargs=* -range=% UrlDecode :call <SID>EncodeURL(<line1>,<line2>,0)
     com! -nargs=1 -bar Base64Encode python print base64.encodestring("<args>")
     com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
     com! -nargs=1 -bar Tm python print datetime.datetime.fromtimestamp(int("<args>")).strftime('%Y-%m-%d %H:%M:%S')
     com! -nargs=0 -bar Now python print time.mktime(datetime.datetime.now().timetuple())
     com! -nargs=0 -bar FmtJSON call FmtJSON()
 
-    function! s:UrlEncode(str)
+
+    function! s:UrlEncode(str, dir)
       python << EOF
-  str = vim.eval('a:str')
+str = vim.eval('a:str')
+dir = int(vim.eval('a:dir'))
+if dir:
   urlStr = urllib.quote_plus(str)
   vim.command(('let l:urlStr="%s"') % urlStr)
-  EOF
+else:
+  urlStr = urllib.unquote_plus(str).split('\n')
+  vim.command(('let l:urlStr=%s') % urlStr)
+EOF
+      if type(l:urlStr) == type([])
+        let l:tmp = join(l:urlStr, "\n")
+        return l:tmp
+      endif
       return l:urlStr
+    endfunction
+
+    function! s:EncodeURL(line1, line2, dir)
+      let l:str = join(getline(a:line1, a:line2), "\n")
+      let @z = <SID>UrlEncode(l:str, a:dir)."\n"
+      exec a:line1.','.a:line2.'d'
+      normal "zP
     endfunction
 
     function! FmtJSON()
@@ -629,8 +652,8 @@ vim.current.buffer[:] = prettyJson.split('\n')
 EOF
     endfunction
 
-    vnoremap <leader>wb "vy:execute g:launchWebBrowser.'http://www.baidu.com/s?wd='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
-    vnoremap <leader>wg "vy:execute g:launchWebBrowser.'http://www.google.com.hk/search?q='.<SID>VimEscape(<SID>UrlEncode(@v))<CR>
+    vnoremap <leader>wb "vy:execute g:launchWebBrowser.'http://www.baidu.com/s?wd='.<SID>VimEscape(<SID>UrlEncode(@v, 1))<CR>
+    vnoremap <leader>wg "vy:execute g:launchWebBrowser.'http://www.google.com.hk/search?q='.<SID>VimEscape(<SID>UrlEncode(@v, 1))<CR>
   endfunction
   com! -nargs=0 -bar PyUtils call <SID>PyUtils()
 endif
