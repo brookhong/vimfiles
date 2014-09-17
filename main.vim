@@ -1,7 +1,7 @@
 " vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab foldmethod=marker
 " ff=unix
 
-" Purge previous auto commands (in case vimrc is run twice)
+" Purge previous auto commands (in case run twice)
 autocmd!
 
 " general settings {{{
@@ -185,8 +185,8 @@ nnoremap <silent> <leader>qn :enew!<CR>
 nnoremap <silent> <leader>qx :q!<CR>
 nnoremap <silent> <leader>ol :let &list=!&list<CR>
 nnoremap <silent> <leader>op :let &paste=!&paste<CR>
-nnoremap <silent> <leader>ve :e $brookvim_root/vimrc<CR>
-nnoremap <silent> <leader>vs :so $brookvim_root/vimrc<CR>
+nnoremap <silent> <leader>ve :e $brookvim_root/main.vim<CR>
+nnoremap <silent> <leader>vs :so $brookvim_root/main.vim<CR>
 nnoremap <silent> <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <silent> <leader>wg :execute g:launchWebBrowser."https://www.google.com/search?q=".expand("<cword>")<CR>
 nnoremap <silent> <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
