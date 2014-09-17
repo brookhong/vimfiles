@@ -51,15 +51,20 @@ if has("win32")
   set enc=utf-8
   if isdirectory('D:/tools/vim/')
     let g:win_prefix = 'D:'
-    let g:cscope_cmd = 'D:/tools/vim/cscope.exe'
   else
     let g:win_prefix = 'C:'
-    let g:cscope_cmd = 'C:/tools/vim/cscope.exe'
   endif
+  if isdirectory('c:/cygwin/')
+    let s:cygwin_dir = 'c:/cygwin/'
+  else
+    let s:cygwin_dir = 'd:/cygwin/'
+  endif
+  if executable('cscope') == 0
+    let g:cscope_cmd = g:win_prefix.'/tools/vim/cscope.exe'
+  endif
+  let $NODE_PATH = g:win_prefix.'\tools\node_modules'
   let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
-  if $PATH !~ "\\d.cygwin.bin"
-    let $PATH='d:\cygwin\bin;'.$PATH
-  endif
+  let $PATH=s:cygwin_dir.'/bin;'.$PATH
   let g:launchWebBrowser=":silent ! start "
   let g:cloudStorage = 'd:/Dropbox'
   let g:fileBrowser="explorer"
@@ -110,6 +115,7 @@ endif
 " }}}
 
 cabbre scu set clipboard=unnamedplus
+cabbre pj !python -mjson.tool
 function! GetFilePath(bufnum)
   return fnamemodify(bufname(str2nr(a:bufnum)), ":p:h")
 endfunction
@@ -144,8 +150,8 @@ nnoremap }} g_l
 nnoremap Y y$
 nnoremap dl dt_
 inoremap <C-F> <Esc>:s/=[^=]*$//g<CR>$yiW$a=<C-R>=<C-R>0<CR>
-nnoremap <expr> <C-j> (len(getloclist(0))>0)?':lnext<CR>':'<C-j>'
-nnoremap <expr> <C-k> (len(getloclist(0))>0)?':lprevious<CR>':'<C-k>'
+nnoremap <expr> <C-j> (len(getloclist(0))>0)?':lnext<CR>':((len(getqflist())>0)?':cnext<CR>':'<C-j>')
+nnoremap <expr> <C-k> (len(getloclist(0))>0)?':lprevious<CR>':((len(getqflist())>0)?':cprevious<CR>':'<C-j>')
 nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
 inoremap <S-F5> <C-R>=strftime("%H:%M:%S %Y/%m/%d")<CR>
 nnoremap <silent> <S-TAB> :call <SID>ToggleTab()<cr>
@@ -156,6 +162,7 @@ nnoremap <silent> <space>d "_d
 nnoremap <silent> <space>c "_c
 nnoremap <silent> <space>C "_C
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
+nnoremap <silent> <leader>fl :Gllog<CR>
 nnoremap <leader>g :LAg <C-R><C-W> <C-R>=ag#prePath()<CR>
 vnoremap <leader>g "vy:<C-u>LAg <C-r>='"'.substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g').'"'<CR> <C-R>=ag#prePath()<CR>
 nnoremap <silent> <leader>h :call <SID>ToggleHexView()<CR>
@@ -196,6 +203,8 @@ let g:vregex_meta_chars = '^$[].*\/~'
 vnoremap <silent> * "vy/<C-r>=substitute(escape(@v,g:vregex_meta_chars),"\n",'\\n','g')<CR><CR>N
 vnoremap <leader>sw "vy:<C-u>%s/\<<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>\>//g<Left><Left>
 vnoremap <leader>sg "vy:<C-u>%s/<C-r>=substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g')<CR>//g<Left><Left>
+nnoremap <space>p :CBPut 
+vnoremap <space>y :CBYank 
 nnoremap <silent> <space>q :q<CR>
 nnoremap <silent> <space>t :tabe<CR>
 nnoremap <silent> <space>v :vnew<CR>
@@ -260,7 +269,7 @@ com! -nargs=1 -complete=customlist,s:GetFileTypes Ft let &ft=<f-args>
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
 com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:cloudStorage.'/data/tech.org' | let @/=<f-args> | normal ggn
 com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
-com! -nargs=0 -bar Df :if &diff|diffoff|exe "normal \<C-W>w"|diffoff|else|diffthis|exe "normal \<C-W>w"|diffthis|endif
+com! -nargs=0 -bar Df :exe "normal \<C-W>h"|if &diff|diffoff|exe "normal \<C-W>l"|diffoff|else|diffthis|exe "normal \<C-W>l"|diffthis|endif
 com! -nargs=? Et call <SID>ExpandTab("<args>")
 com! -nargs=0 -range=% Gd exec ':<line1>,<line2>g/'.@/.'/d'
 com! -nargs=0 -range Ucfirst let a=@/ | s/\(\a\)\(\a*\)/\1\L\2/g | let @/=a
@@ -387,7 +396,7 @@ function! s:MyGdiff()
   if &diff
     exec "normal \<C-W>hZQ"
   else
-    Gdiff
+    Gvdiff
   endif
 endfunction
 
@@ -419,6 +428,7 @@ Bundle 'brookhong/DBGPavim'
 Bundle 'brookhong/cscope.vim'
 Bundle 'brookhong/k.vim'
 Bundle 'brookhong/ag.vim'
+Bundle 'brookhong/cloudboard.vim'
 Bundle 'matchit.zip'
 Bundle 'digitaltoad/vim-jade'
 Bundle 'godlygeek/tabular'
@@ -575,6 +585,7 @@ function! s:SetOrgFile()
     endif
     call org#SetOrgFileType()
     nnoremap <buffer> K /^\*.*\c\<\><Left><Left>
+    setlocal wrap
   endif
 endfunction
 au BufRead,BufWrite,BufWritePost,BufNewFile *.org :call <SID>SetOrgFile()
@@ -598,10 +609,9 @@ function! s:GetFileTypes(A,L,P)
 endfunction
 " python utilities {{{
 if has("python")
-  function! s:PyUtils()
+  "function! s:PyUtils()
     python import cgi
     python import HTMLParser
-    python import urllib
     python import base64
     python import datetime
     python import time
@@ -610,39 +620,11 @@ if has("python")
     python htmlparser = HTMLParser.HTMLParser()
     com! -nargs=1 -bar CgiEscape python print cgi.escape("<args>", True)
     com! -nargs=1 -bar CgiUnescape python print htmlparser.unescape("<args>")
-    com! -nargs=* -range=% UrlEncode :call <SID>EncodeURL(<line1>,<line2>,1)
-    com! -nargs=* -range=% UrlDecode :call <SID>EncodeURL(<line1>,<line2>,0)
     com! -nargs=1 -bar Base64Encode python print base64.encodestring("<args>")
     com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
     com! -nargs=1 -bar Tm python print datetime.datetime.fromtimestamp(int("<args>")).strftime('%Y-%m-%d %H:%M:%S')
     com! -nargs=0 -bar Now python print time.mktime(datetime.datetime.now().timetuple())
     com! -nargs=0 -bar FmtJSON call FmtJSON()
-
-
-    function! s:UrlEncode(str, dir)
-      python << EOF
-str = vim.eval('a:str')
-dir = int(vim.eval('a:dir'))
-if dir:
-  urlStr = urllib.quote_plus(str)
-  vim.command(('let l:urlStr="%s"') % urlStr)
-else:
-  urlStr = urllib.unquote_plus(str).split('\n')
-  vim.command(('let l:urlStr=%s') % urlStr)
-EOF
-      if type(l:urlStr) == type([])
-        let l:tmp = join(l:urlStr, "\n")
-        return l:tmp
-      endif
-      return l:urlStr
-    endfunction
-
-    function! s:EncodeURL(line1, line2, dir)
-      let l:str = join(getline(a:line1, a:line2), "\n")
-      let @z = <SID>UrlEncode(l:str, a:dir)."\n"
-      exec a:line1.','.a:line2.'d'
-      normal "zP
-    endfunction
 
     function! FmtJSON()
       python << EOF
@@ -652,10 +634,10 @@ vim.current.buffer[:] = prettyJson.split('\n')
 EOF
     endfunction
 
-    vnoremap <leader>wb "vy:execute g:launchWebBrowser.'http://www.baidu.com/s?wd='.<SID>VimEscape(<SID>UrlEncode(@v, 1))<CR>
-    vnoremap <leader>wg "vy:execute g:launchWebBrowser.'http://www.google.com.hk/search?q='.<SID>VimEscape(<SID>UrlEncode(@v, 1))<CR>
-  endfunction
-  com! -nargs=0 -bar PyUtils call <SID>PyUtils()
+    vnoremap <leader>wb "vy:execute g:launchWebBrowser.'http://www.baidu.com/s?wd='.<SID>VimEscape(CloudBoard#UrlEncode(@v, 1))<CR>
+    vnoremap <leader>wg "vy:execute g:launchWebBrowser.'http://www.google.com.hk/search?q='.<SID>VimEscape(CloudBoard#UrlEncode(@v, 1))<CR>
+  "endfunction
+  "com! -nargs=0 -bar PyUtils call <SID>PyUtils()
 endif
 " }}}
 
