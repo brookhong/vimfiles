@@ -41,7 +41,7 @@ endif
 
 " OS-specific {{{
 " find root path of my vimfiles
-let $brookvim_root = expand("<sfile>:p:h")
+let s:vimfiles_dir = expand("<sfile>:p:h")
 let g:win_prefix = ''
 let g:cloudStorage = $HOME.'/Dropbox'
 if has("win32")
@@ -63,10 +63,11 @@ if has("win32")
     let g:cscope_cmd = g:win_prefix.'/tools/vim/cscope.exe'
   endif
   let $NODE_PATH = g:win_prefix.'\tools\node_modules'
-  let $brookvim_root = substitute($brookvim_root,"\\","\/","g")
+  let s:vimfiles_dir = substitute(s:vimfiles_dir,"\\","\/","g")
   let $PATH=s:cygwin_dir.'/bin;'.$PATH
   let g:launchWebBrowser=":silent ! start "
   let g:cloudStorage = 'd:/Dropbox'
+  let g:ctrlp_k_favorites = g:cloudStorage.'/data/cli.cmd'
   let g:fileBrowser="explorer"
 elseif has("mac")
   set guifont=Menlo:h14
@@ -74,19 +75,21 @@ elseif has("mac")
   let g:launchWebBrowser=":silent ! open /Applications/Google\\ Chrome.app "
   let g:fileBrowser="open"
   let Tlist_Ctags_Cmd = '/usr/local/bin/ctags'
+  let g:ctrlp_k_favorites = g:cloudStorage.'/data/cli.sh'
 elseif has("unix")
   let g:launchWebBrowser=":silent ! /opt/chrome/chrome-wrapper "
   if executable('chromium')
     let g:launchWebBrowser=":silent ! chromium "
   endif
   let g:fileBrowser="thunar"
+  let g:ctrlp_k_favorites = g:cloudStorage.'/data/cli.sh'
   if has("X11")
     nnoremap <leader>y "+y
     vnoremap <leader>y "+y
   endif
 endif
 " add it into runtimepath
-let &runtimepath = $brookvim_root.",".&runtimepath
+let &runtimepath = s:vimfiles_dir.",".&runtimepath
 " }}}
 
 " UI-specific {{{
@@ -149,7 +152,7 @@ nnoremap # /\c\<<C-R><C-W>\><CR>
 nnoremap }} g_l
 nnoremap Y y$
 nnoremap dl dt_
-inoremap <C-F> <Esc>:s/=[^=]*$//g<CR>$yiW$a=<C-R>=<C-R>0<CR>
+inoremap <C-F> <Esc>:let a=@/<CR>:s/=[^=]*$//g<CR>$yiW$a=<C-R>=<C-R>0<CR><Esc>:let @/=a<CR>
 nnoremap <expr> <C-j> (len(getloclist(0))>0)?':lnext<CR>':((len(getqflist())>0)?':cnext<CR>':'<C-j>')
 nnoremap <expr> <C-k> (len(getloclist(0))>0)?':lprevious<CR>':((len(getqflist())>0)?':cprevious<CR>':'<C-j>')
 nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
@@ -162,7 +165,7 @@ nnoremap <silent> <space>d "_d
 nnoremap <silent> <space>c "_c
 nnoremap <silent> <space>C "_C
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
-nnoremap <silent> <leader>fl :Gllog<CR>
+nnoremap <silent> <leader>fl :Gllog<Bar>lw<CR>
 nnoremap <leader>g :LAg <C-R><C-W> <C-R>=ag#prePath()<CR>
 vnoremap <leader>g "vy:<C-u>LAg <C-r>='"'.substitute(escape(@v,g:eregex_meta_chars),"\n",'\\n','g').'"'<CR> <C-R>=ag#prePath()<CR>
 nnoremap <silent> <leader>h :call <SID>ToggleHexView()<CR>
@@ -174,6 +177,7 @@ nnoremap <silent> <leader>qa :qall!<cr>
 nnoremap <silent> <leader>qb :CtrlPBuffer<CR>
 nnoremap <silent> <leader>qc :e!<Esc>ggdG<CR>
 nnoremap <silent> <leader>qd :call <SID>MyGdiff()<CR>
+nnoremap <silent> <leader>qe :CtrlPK<CR>
 nnoremap <silent> <leader>qf :CtrlPMRU<CR>
 nnoremap <silent> <leader>ql :CtrlPLine<CR>
 nnoremap <silent> <leader>qt :CtrlPFunky<CR>
@@ -185,8 +189,10 @@ nnoremap <silent> <leader>qn :enew!<CR>
 nnoremap <silent> <leader>qx :q!<CR>
 nnoremap <silent> <leader>ol :let &list=!&list<CR>
 nnoremap <silent> <leader>op :let &paste=!&paste<CR>
-nnoremap <silent> <leader>ve :e $brookvim_root/main.vim<CR>
-nnoremap <silent> <leader>vs :so $brookvim_root/main.vim<CR>
+nnoremap <silent> <leader>yt :exec exists('g:syntax_on')?'syntax off':'syntax on'<CR>
+let g:main_vim = expand("<sfile>:p")
+nnoremap <silent> <leader>ve :exec ':e '.g:main_vim<CR>
+nnoremap <silent> <leader>vs :exec ':so '.g:main_vim<CR>
 nnoremap <silent> <leader>wb :execute g:launchWebBrowser."http://www.baidu.com/s?wd=".expand("<cword>")<CR>
 nnoremap <silent> <leader>wg :execute g:launchWebBrowser."https://www.google.com/search?q=".expand("<cword>")<CR>
 nnoremap <silent> <leader>wl :execute g:launchWebBrowser.expand("<cWORD>")<CR>
@@ -265,7 +271,6 @@ com! -nargs=? CC cd %:h
 com! -nargs=? Cf Rc echo expand('%:p')
 com! -nargs=1 -complete=buffer Dw exec ':w! '.g:cloudStorage.'/tmp/'.<f-args>
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
-com! -nargs=1 -complete=customlist,s:GetFileTypes Ft let &ft=<f-args>
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
 com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:cloudStorage.'/data/tech.org' | let @/=<f-args> | normal ggn
 com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
@@ -413,9 +418,9 @@ endfunction
 
 " plugins {{{
 filetype off
-let &runtimepath = $brookvim_root."/bundle/vundle/,".&runtimepath
+let &runtimepath = s:vimfiles_dir."/bundle/vundle/,".&runtimepath
 call vundle#rc()
-let g:bundle_dir = $brookvim_root."/bundle/"
+let g:bundle_dir = s:vimfiles_dir."/bundle/"
 Bundle 'gmarik/vundle'
 Bundle 'scrooloose/nerdcommenter'
 Bundle 'scrooloose/nerdtree'
@@ -475,6 +480,8 @@ function! s:ToggleNERDTree(dir)
     endif
   endif
 endfunction
+" nerdcommenter
+let NERDSpaceDelims=1
 
 function! s:ToggleAutoSDCV()
   if exists("b:AutoSDCV")
@@ -573,7 +580,9 @@ let g:ctrlp_custom_ignore       = {
       \ 'dir':  '\.git$\|\.hg$\|\.svn$',
       \ 'file': '\.3dm$\|\.3g2$\|\.3gp$\|\.7z$\|\.a$\|\.a.out$\|\.accdb$\|\.ai$\|\.aif$\|\.aiff$\|\.app$\|\.arj$\|\.asf$\|\.asx$\|\.au$\|\.avi$\|\.bak$\|\.bin$\|\.bmp$\|\.bz2$\|\.cab$\|\.cer$\|\.cfm$\|\.cgi$\|\.com$\|\.cpl$\|\.csr$\|\.csv$\|\.cue$\|\.cur$\|\.dat$\|\.db$\|\.dbf$\|\.dbx$\|\.dds$\|\.deb$\|\.dem$\|\.dll$\|\.dmg$\|\.dmp$\|\.dng$\|\.doc$\|\.docx$\|\.drv$\|\.dwg$\|\.dxf$\|\.ear$\|\.efx$\|\.eps$\|\.epub$\|\.exe$\|\.fla$\|\.flv$\|\.fnt$\|\.fon$\|\.gadget$\|\.gam$\|\.gbr$\|\.ged$\|\.gif$\|\.gpx$\|\.gz$\|\.hqx$\|\.ibooks$\|\.icns$\|\.ico$\|\.ics$\|\.iff$\|\.img$\|\.indd$\|\.iso$\|\.jar$\|\.jpeg$\|\.jpg$\|\.key$\|\.keychain$\|\.kml$\|\.lnk$\|\.lz$\|\.m3u$\|\.m4a$\|\.max$\|\.mdb$\|\.mid$\|\.mim$\|\.moov$\|\.mov$\|\.movie$\|\.mp2$\|\.mp3$\|\.mp4$\|\.mpa$\|\.mpeg$\|\.mpg$\|\.msg$\|\.msi$\|\.nes$\|\.o$\|\.obj$\|\.ocx$\|\.odt$\|\.otf$\|\.pages$\|\.part$\|\.pct$\|\.pdb$\|\.pdf$\|\.pif$\|\.pkg$\|\.plugin$\|\.png$\|\.pps$\|\.ppt$\|\.pptx$\|\.prf$\|\.ps$\|\.psd$\|\.pspimage$\|\.qt$\|\.ra$\|\.rar$\|\.rm$\|\.rom$\|\.rpm$\|\.rtf$\|\.sav$\|\.scr$\|\.sdf$\|\.sea$\|\.sit$\|\.sitx$\|\.sln$\|\.smi$\|\.so$\|\.svg$\|\.swf$\|\.swp$\|\.sys$\|\.tar$\|\.tar.gz$\|\.tax2010$\|\.tga$\|\.thm$\|\.tif$\|\.tiff$\|\.tlb$\|\.tmp$\|\.toast$\|\.torrent$\|\.ttc$\|\.ttf$\|\.uu$\|\.uue$\|\.vb$\|\.vcd$\|\.vcf$\|\.vcxproj$\|\.vob$\|\.war$\|\.wav$\|\.wma$\|\.wmv$\|\.wpd$\|\.wps$\|\.xll$\|\.xlr$\|\.xls$\|\.xlsx$\|\.xpi$\|\.yuv$\|\.Z$\|\.zip$\|\.zipx$\|\.lib$\|\.res$\|\.rc$\|\.out$',
       \ }
-let g:ctrlp_extensions = ['funky', 'line']
+let g:ctrlp_extensions = ['funky', 'line', 'k']
+let g:ctrlp_regexp = 1
+
 
 " VimOrganizer setup
 let g:ft_ignore_pat = '\.org'
@@ -598,15 +607,6 @@ function! s:VimEscape(str)
   return substitute(a:str, '%', '\\%', 'g')
 endfunction
 
-function! s:GetFileTypes(A,L,P)
-  let l:sf = split(glob($VIMRUNTIME . '/syntax/' . a:A . '*.vim'),"\n")
-  let l:types = []
-  for f in l:sf
-    let l:fn = substitute(f,'.*[/\\]\([^.]*\).vim','\1','g')
-    call add(l:types, l:fn)
-  endfor
-  return l:types
-endfunction
 " python utilities {{{
 if has("python")
   "function! s:PyUtils()
@@ -629,7 +629,7 @@ if has("python")
     function! FmtJSON()
       python << EOF
 jsonStr = "\n".join(vim.current.buffer[:])
-prettyJson = json.dumps(json.loads(jsonStr), sort_keys=True, indent=4, separators=(',', ': '))
+prettyJson = json.dumps(json.loads(jsonStr), sort_keys=True, indent=4, separators=(',', ': '), ensure_ascii=False)
 vim.current.buffer[:] = prettyJson.split('\n')
 EOF
     endfunction
@@ -650,4 +650,4 @@ if has("gui")
   cnoremap <M-Space> <C-C>:simalt ~<CR>
 endif
 nnoremap <space>h :windo if &bt=='help' <Bar>quit<Bar>endif<CR>
-let &runtimepath = &runtimepath.",".$brookvim_root."/after"
+let &runtimepath = &runtimepath.",".s:vimfiles_dir."/after"
