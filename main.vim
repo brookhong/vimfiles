@@ -43,12 +43,12 @@ endif
 " find root path of my vimfiles
 let s:vimfiles_dir = expand("<sfile>:p:h")
 let g:win_prefix = ''
-let g:cloudStorage = $HOME.'/Dropbox'
+let g:cloudStorage = s:vimfiles_dir.'/..'
+set enc=utf-8
 if has("win32")
   "set gfn=Consolas:h12:cANSI
   "set gfn=Microsoft_YaHei_Mono:h12:cANSI
   set gfn=Menlo:h10:cANSI
-  set enc=utf-8
   if isdirectory('D:/tools/vim/')
     let g:win_prefix = 'D:'
   else
@@ -65,6 +65,7 @@ if has("win32")
   let $NODE_PATH = g:win_prefix.'\tools\node_modules'
   let s:vimfiles_dir = substitute(s:vimfiles_dir,"\\","\/","g")
   let $PATH=s:cygwin_dir.'/bin;'.$PATH
+  let $LANG="en_US.UTF8"
   let g:launchWebBrowser=":silent ! start "
   let g:cloudStorage = 'd:/Dropbox'
   let g:ctrlp_k_favorites = g:cloudStorage.'/data/cli.cmd'
@@ -94,8 +95,11 @@ let &runtimepath = s:vimfiles_dir.",".&runtimepath
 
 " UI-specific {{{
 if &term == 'builtin_gui' || &term == ''
-  set clipboard=unnamed
-  "set clipboard=unnamedplus
+  if has('mac')
+    set clipboard=unnamed
+  elseif has('unix')
+    set clipboard=unnamedplus
+  endif
 
   let day=strftime("%H")
   if day>7 && day<19
@@ -117,8 +121,6 @@ else
 endif
 " }}}
 
-cabbre scu set clipboard=unnamedplus
-cabbre pj !python -mjson.tool
 function! GetFilePath(bufnum)
   return fnamemodify(bufname(str2nr(a:bufnum)), ":p:h")
 endfunction
@@ -150,7 +152,8 @@ xnoremap <expr> P '"_d"'.v:register.'P'
 xnoremap C "_c
 nnoremap # /\c\<<C-R><C-W>\><CR>
 nnoremap }} g_l
-nnoremap Y y$
+nnoremap Y y$:let @*=@+<CR>
+vnoremap Y y:let @*=@+<CR>
 nnoremap dl dt_
 inoremap <C-F> <Esc>:let a=@/<CR>:s/=[^=]*$//g<CR>$yiW$a=<C-R>=<C-R>0<CR><Esc>:let @/=a<CR>
 nnoremap <expr> <C-j> (len(getloclist(0))>0)?':lnext<CR>':((len(getqflist())>0)?':cnext<CR>':'<C-j>')
@@ -164,6 +167,7 @@ nnoremap <leader>b :execute "silent !" . g:fileBrowser . " %:h"<CR>
 nnoremap <silent> <space>d "_d
 nnoremap <silent> <space>c "_c
 nnoremap <silent> <space>C "_C
+nnoremap <silent> <leader>cr :let @k='curl -s "'.expand('<cWORD>').'"'<BAR>call k#RunReg('k', 'bash', 'botri 10', '', '', 0)<CR>
 nnoremap <silent> <leader>e :call <SID>ToggleNERDTree(getcwd())<CR>
 nnoremap <silent> <leader>fl :Gllog<Bar>lw<CR>
 nnoremap <leader>g :LAg <C-R><C-W> <C-R>=ag#prePath()<CR>
@@ -228,6 +232,8 @@ endif
 " }}}
 
 " autocmds {{{
+autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
+autocmd BufNewFile,BufFilePre,BufRead *.* call <SID>ExpandTab(4)
 autocmd BufRead,BufNewFile  *.grp set filetype=grp
 autocmd FileType grp        nnoremap <silent> K :call <SID>PreviewFile()<CR>
 function! s:PreviewFile()
@@ -390,7 +396,7 @@ function! s:Number(line1, line2, start, suffix)
 endfunction
 
 function! s:MyMarkDown()
-  nnoremap <buffer> <leader>r :execute ':!Markdown.pl --html4tags % >'.expand('%:r').'.html'<CR>
+  nnoremap <buffer> <leader>r :call k#RunMe('LC_CTYPE=UTF-8 ruby '.g:cloudStorage.'/snippets/ruby/md2html.rb', 'vert bel', "", 0)<CR>
   call <SID>ExpandTab(2)
   setlocal foldmethod=syntax
   syn region myFold start=/> > > ---/ end=/^$/ transparent fold
@@ -624,13 +630,16 @@ if has("python")
     com! -nargs=1 -bar Base64Decode python print base64.decodestring("<args>")
     com! -nargs=1 -bar Tm python print datetime.datetime.fromtimestamp(int("<args>")).strftime('%Y-%m-%d %H:%M:%S')
     com! -nargs=0 -bar Now python print time.mktime(datetime.datetime.now().timetuple())
-    com! -nargs=0 -bar FmtJSON call FmtJSON()
+    com! -range -bar FmtJSON :call FmtJSON(<line1>, <line2>)
 
-    function! FmtJSON()
+    function! FmtJSON(lineStart, lineEnd)
+
       python << EOF
-jsonStr = "\n".join(vim.current.buffer[:])
+fmtlStart = int(vim.eval('a:lineStart'))-1
+fmtlEnd = int(vim.eval('a:lineEnd'))
+jsonStr = "\n".join(vim.current.buffer[fmtlStart:fmtlEnd])
 prettyJson = json.dumps(json.loads(jsonStr), sort_keys=True, indent=4, separators=(',', ': '), ensure_ascii=False)
-vim.current.buffer[:] = prettyJson.split('\n')
+vim.current.buffer[fmtlStart:fmtlEnd] = prettyJson.split('\n')
 EOF
     endfunction
 
