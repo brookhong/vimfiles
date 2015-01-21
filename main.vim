@@ -23,6 +23,7 @@ set statusline=%f\ %h%m%r\ \[%{&ff}:%{&fenc}:%Y]\ %<%{getcwd()}\ %=%n%-10{((&exp
 set list
 set listchars=tab:>-,trail:-
 set fileformat=unix
+set fdm=manual
 if isdirectory($HOME.'/.vim_swap') == 0
   call mkdir($HOME.'/.vim_swap')
 endif
@@ -44,6 +45,7 @@ endif
 let s:vimfiles_dir = expand("<sfile>:p:h")
 let g:win_prefix = ''
 let g:cloudStorage = s:vimfiles_dir.'/..'
+let g:ctrlp_k_favorites = g:cloudStorage.'/snippets/cli.sh'
 set enc=utf-8
 if has("win32")
   "set gfn=Consolas:h12:cANSI
@@ -67,8 +69,7 @@ if has("win32")
   let $PATH=s:cygwin_dir.'/bin;'.$PATH
   let $LANG="en_US.UTF8"
   let g:launchWebBrowser=":silent ! start "
-  let g:cloudStorage = 'd:/Dropbox'
-  let g:ctrlp_k_favorites = g:cloudStorage.'/data/cli.cmd'
+  let g:ctrlp_k_favorites = g:cloudStorage.'/snippets/cli.cmd'
   let g:fileBrowser="explorer"
 elseif has("mac")
   set guifont=Menlo:h14
@@ -76,14 +77,12 @@ elseif has("mac")
   let g:launchWebBrowser=":silent ! open /Applications/Google\\ Chrome.app "
   let g:fileBrowser="open"
   let Tlist_Ctags_Cmd = '/usr/local/bin/ctags'
-  let g:ctrlp_k_favorites = g:cloudStorage.'/data/cli.sh'
 elseif has("unix")
   let g:launchWebBrowser=":silent ! /opt/chrome/chrome-wrapper "
   if executable('chromium')
     let g:launchWebBrowser=":silent ! chromium "
   endif
   let g:fileBrowser="thunar"
-  let g:ctrlp_k_favorites = g:cloudStorage.'/data/cli.sh'
   if has("X11")
     nnoremap <leader>y "+y
     vnoremap <leader>y "+y
@@ -162,7 +161,7 @@ nnoremap <expr> <C-b> (bufnr('%')==bufnr('$'))?':buffer 1<CR>':':bnext<CR>'
 inoremap <S-F5> <C-R>=strftime("%H:%M:%S %Y/%m/%d")<CR>
 nnoremap <silent> <S-TAB> :call <SID>ToggleTab()<cr>
 inoremap <silent> <S-TAB> <C-O>:call <SID>ToggleTab()<cr>
-nnoremap <silent> <leader>a :call AppendToFile(g:cloudStorage.'/data/vocabulary.lst', expand('<cword>'))<CR>
+nnoremap <silent> <leader>a :call AppendToFile(g:cloudStorage.'/notes/vocabulary.lst', expand('<cword>'))<CR>
 nnoremap <leader>b :execute "silent !" . g:fileBrowser . " %:h"<CR>
 nnoremap <silent> <space>d "_d
 nnoremap <silent> <space>c "_c
@@ -187,8 +186,7 @@ nnoremap <silent> <leader>ql :CtrlPLine<CR>
 nnoremap <silent> <leader>qt :CtrlPFunky<CR>
 nnoremap <silent> <leader>qi :lgetexpr []<Bar>g/<C-r>=expand("<cword>")<CR>/laddexpr expand("%") . ":" . line(".") .  ":" . getline(".")<CR>:lw<CR>
 vnoremap <silent> <leader>qi "vy:lgetexpr []<Bar>g/<C-r>=substitute(escape(@v,g:vregex_meta_chars),"\n",'\\n','g')<CR>/laddexpr expand("%") . ":" . line(".") .  ":" . getline(".")<CR>:lw<CR>
-nnoremap <silent> <leader>qk :execute 'e '.g:cloudStorage.'/data/tech.org'<CR>
-nnoremap <silent> <space>1 :execute 'e '.g:cloudStorage.'/data/clipboard.txt'<CR>
+nnoremap <silent> <leader>qk :bel new<CR>:let nr = input("K ")<Bar>exec 'lvimgrep /'.nr.'/ '.g:cloudStorage.'/notes/*.*'<Bar>lw<Bar>let @/=nr<Bar>normal ggn<CR>
 nnoremap <silent> <leader>qn :enew!<CR>
 nnoremap <silent> <leader>qx :q!<CR>
 nnoremap <silent> <leader>ol :let &list=!&list<CR>
@@ -275,10 +273,9 @@ com! -nargs=0 Bd call <SID>BackDiff()
 com! -nargs=? Ct call <SID>Count("<args>")
 com! -nargs=? CC cd %:h
 com! -nargs=? Cf Rc echo expand('%:p')
-com! -nargs=1 -complete=buffer Dw exec ':w! '.g:cloudStorage.'/tmp/'.<f-args>
 com! -nargs=1 -bar H :call <SID>LHelpGrep(<q-args>)
 com! -nargs=? I exec ":il ".<f-args>."<Bar>let nr=input('GotoLine:')" | exec ":".nr
-com! -nargs=1 K exec ':lvimgrep /'.<f-args>.'/ '.g:cloudStorage.'/data/tech.org' | let @/=<f-args> | normal ggn
+com! -nargs=1 K :bel new|exec ':lvimgrep /'.<f-args>.'/ '.g:cloudStorage.'/notes/*.*' | let @/=<f-args> | normal ggn
 com! -nargs=1 S let @/='\<'.<f-args>.'\>' | normal n
 com! -nargs=0 -bar Df :exe "normal \<C-W>h"|if &diff|diffoff|exe "normal \<C-W>l"|diffoff|else|diffthis|exe "normal \<C-W>l"|diffthis|endif
 com! -nargs=? Et call <SID>ExpandTab("<args>")
