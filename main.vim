@@ -94,9 +94,8 @@ let &runtimepath = s:vimfiles_dir.",".&runtimepath
 
 " UI-specific {{{
 if &term == 'builtin_gui' || &term == ''
-  if has('mac')
-    set clipboard=unnamed
-  elseif has('unix')
+  set clipboard=unnamed
+  if has('unix')
     set clipboard=unnamedplus
   endif
 
@@ -186,7 +185,7 @@ nnoremap <silent> <leader>ql :CtrlPLine<CR>
 nnoremap <silent> <leader>qt :CtrlPFunky<CR>
 nnoremap <silent> <leader>qi :lgetexpr []<Bar>g/<C-r>=expand("<cword>")<CR>/laddexpr expand("%") . ":" . line(".") .  ":" . getline(".")<CR>:lw<CR>
 vnoremap <silent> <leader>qi "vy:lgetexpr []<Bar>g/<C-r>=substitute(escape(@v,g:vregex_meta_chars),"\n",'\\n','g')<CR>/laddexpr expand("%") . ":" . line(".") .  ":" . getline(".")<CR>:lw<CR>
-nnoremap <silent> <leader>qk :bel new<CR>:let nr = input("K ")<Bar>exec 'lvimgrep /'.nr.'/ '.g:cloudStorage.'/notes/*.*'<Bar>lw<Bar>let @/=nr<Bar>normal ggn<CR>
+nnoremap <silent> <leader>qk :if &modified<Bar>bel new<Bar>endif<CR>:let nr = input("K ")<Bar>exec 'lvimgrep /'.nr.'/ '.g:cloudStorage.'/notes/*.*'<Bar>lw<Bar>let @/=nr<Bar>normal ggn<CR>
 nnoremap <silent> <leader>qn :enew!<CR>
 nnoremap <silent> <leader>qx :q!<CR>
 nnoremap <silent> <leader>ol :let &list=!&list<CR>
